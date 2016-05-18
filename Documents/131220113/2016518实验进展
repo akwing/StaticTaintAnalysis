@@ -1,0 +1,9 @@
+由于Ubuntu下代码补全不够好，该为在windows下进行实验
+重新造Windows7 下配置了实验环境
+版本 Clang3.7.0
+    CMake 3.5.2
+    VisualStudio 2013 update4
+    Python 2.7.11
+
+测试编写了ASTReader的Tool，功能是对执行clang -emit-ast xxx.cpp后得到的.ast文件进行读取，输出文件名以测试其正确性。
+成功获取了ast的top decl。
