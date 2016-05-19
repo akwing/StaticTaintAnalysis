@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include "clang/Frontend/ASTUnit.h"
 #include "clang/Frontend/CompilerInstance.h"
