@@ -22,7 +22,7 @@ enum e_tattr{
 class Tainted_Attr
 {
 public:
-	friend class Tmap;
+	friend class CTmap;
 	//构造函数
 	Tainted_Attr(){
 		attr = UNTAINTED;
@@ -80,13 +80,14 @@ private:
 };
 
 //封装了C++ map模板的污染表类 
-class Tmap
+class CTmap
 {
+	friend class CFGInOut;
 public:
 	//构造函数
-	Tmap(){}
+	CTmap(){}
 	//拷贝构造函数
-	Tmap(Tmap& b)
+	CTmap(CTmap& b)
 	{
 		Tainted_Attr *t = NULL, *newattr;
 		VarDecl *pdec = NULL;
@@ -105,7 +106,7 @@ public:
 		}
 	}
 	//析构函数
-	~Tmap()
+	~CTmap()
 	{
 		Tainted_Attr *t;
 		map<VarDecl *, Tainted_Attr *>::iterator iter = tmap.begin(), iter_end = tmap.end();
@@ -129,6 +130,26 @@ public:
 			t->output();
 		}
 	}
+
+	void CopyMap(CTmap& b)
+	{
+		Tainted_Attr *t = NULL, *newattr;
+		VarDecl *pdec = NULL;
+		map<VarDecl *, Tainted_Attr *>::iterator it = b.tmap.begin(), it_end = b.tmap.end();
+
+		while (it != it_end)
+		{
+			pdec = (*it).first;
+			t = (*it).second;
+			newattr = new Tainted_Attr;
+
+			newattr->attr = t->attr;
+			newattr->relation = t->relation;
+
+			tmap[pdec] = newattr;
+		}
+	}
+
 	//若p不在表中，插入一个变量定义节点，并创建一个污染属性变量
 	void insert(VarDecl *p)
 	{
@@ -141,6 +162,7 @@ public:
 		else
 			delete t;
 	}
+
 	//从map中删除p
 	void del(VarDecl *p)
 	{
@@ -148,6 +170,7 @@ public:
 		delete t;
 		tmap.erase(p);
 	}
+
 	//取得变量定义节点p对应的污染属性
 	Tainted_Attr *getmap(VarDecl *p)
 	{
@@ -159,7 +182,7 @@ public:
 			return tmap[p];
 	}
 	//将两个map中的污染属性合并
-	void AndMap(Tmap &b)
+	void AndMap(CTmap &b)
 	{
 		VarDecl *p;
 		map<VarDecl *, Tainted_Attr *>::iterator iter = tmap.begin(), iter_end = tmap.end();
@@ -172,4 +195,25 @@ public:
 	}
 private:
 	map<VarDecl *, Tainted_Attr *> tmap;
+};
+
+//CFG的输入输出类
+class CFGInOut{
+private:
+	//CFG的输入输出
+	CTmap IN, OUT;
+public:
+	CFGInOut(CTmap& b)
+	{
+		IN.CopyMap(b);
+		OUT.CopyMap(b);
+	}
+	CTmap& GetIN()
+	{
+		return IN;
+	}
+	CTmap& GetOUT()
+	{
+		return OUT;
+	}
 };
