@@ -1,4 +1,8 @@
-#include "ASTReader.h"
+#include "AST.h"
+//#include "buildCFG.h"
+
+void printCallGraph(std::vector<callgraph*> Callgraph);
+
 int main(int argc, char *argv[]) {
 
 	FileSystemOptions opts;
@@ -7,13 +11,14 @@ int main(int argc, char *argv[]) {
 
 	std::unique_ptr<ASTUnit> AU = ASTUnit::LoadFromASTFile(argv[1], compiler.getPCHContainerReader(), Diags, opts);
 
+
 	//std::cout << AU->getASTFileName().str() << std::endl;
 	ASTContext &context = AU->getASTContext();
 	ASTFunctionLoad load;
 	load.HandleTranslationUnit(context);
 	std::vector<FunctionDecl*>  func = load.getFunctions();
 
-
+	
 	std::vector<FunctionDecl*>::iterator it;
 	//for (it = func.begin(); it != func.end(); it++)
 	//	std::cout << (*it)->getQualifiedNameAsString() << std::endl;
@@ -57,34 +62,14 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	//std::vector<callgraph*>::iterator it3;
-	for (it3 = Callgraph.begin(); it3 != Callgraph.end(); it3++)
-	{
-		std::cout << (*it3)->getCur()->getQualifiedNameAsString() << ":\n";
-		int j = (*it3)->getCallerNum();
-		std::cout << "\tcaller:" << j << "\n";
-		for (int i = 0; i < j; i++)
-			std::cout << "\t\t" << (*it3)->getCaller(i)->getQualifiedNameAsString() << "\n";
-		j = (*it3)->getCalleeNum();
-		std::cout << "\tcallee:" << j << "\n";
-		for (int i = 0; i < j; i++)
-			std::cout << "\t\t" << (*it3)->getCallee(i)->getQualifiedNameAsString() << "\n";
-	}
-	
+	std::vector<FunctionDecl*> ringVector;
+	getRing(Callgraph, 0, ringVector);
+
+	resetIfCheck(Callgraph);
 	ifcheck(Callgraph, *Callgraph.begin());
-	
-	for (it3 = Callgraph.begin(); it3 != Callgraph.end(); it3++)
-	{
-		std::cout << (*it3)->getCur()->getQualifiedNameAsString() << ":\n";
-		int j = (*it3)->getCallerNum();
-		std::cout << "\tcaller:" << j << "\n";
-		for (int i = 0; i < j; i++)
-			std::cout << "\t\t" << (*it3)->getCaller(i)->getQualifiedNameAsString() << "\n";
-		j = (*it3)->getCalleeNum();
-		std::cout << "\tcallee:" << j << "\n";
-		for (int i = 0; i < j; i++)
-			std::cout << "\t\t" << (*it3)->getCallee(i)->getQualifiedNameAsString() << "\n";
-	}
+	//printCallGraph(Callgraph);
+
+	//(*Callgraph.begin())->print_cfg();
 
 	return 0;
 }
