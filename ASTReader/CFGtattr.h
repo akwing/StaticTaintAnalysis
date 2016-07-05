@@ -17,15 +17,22 @@ public:
 		IN.CopyMap(b);
 		OUT.CopyMap(b);
 	}
-	CTmap& GetIN()
+	CTmap* GetIN()
 	{
-		return IN;
+		return &IN;
 	}
-	CTmap& GetOUT()
+	CTmap* GetOUT()
 	{
-		return OUT;
+		return &OUT;
+	}
+	void setIO(CTmap &tm)
+	{
+		IN.CopyMap(tm);
+		OUT.CopyMap(tm);
 	}
 };
 
-bool checkCFG(clang::CFG &cfg);
+Tainted_Attr *checkCFG(clang::CFG &cfg);
+
 bool buildmap(clang::CFG &cfg, CTmap &tm);
+void build_block_io_table(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *CFGexit, clang::CFGBlock *block, CTmap &tm);
