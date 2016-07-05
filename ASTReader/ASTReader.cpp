@@ -70,7 +70,15 @@ int main(int argc, char *argv[]) {
 	//printCallGraph(Callgraph);
 
 	//(*Callgraph.begin())->print_cfg();
+	
+	ASTCXXRecorderLoad classLoad;
+	classLoad.HandleTranslationUnit(context);
+	std::vector<CXXRecordDecl*> cxxrds = classLoad.getClassDecl();
 
+	ASTCXXMethodDeclLoad classMethodLoad;
+	classMethodLoad.HandleTranslationUnit(context);
+	std::vector<CXXMethodDecl*> cxxrds = classMethodLoad.getClassDecl();
+	
 	return 0;
 }
 
