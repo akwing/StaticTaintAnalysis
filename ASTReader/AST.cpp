@@ -161,3 +161,40 @@ void printCallGraph(std::vector<callgraph*> Callgraph)
 			std::cout << "\t\t" << (*it3)->getCallee(i)->getQualifiedNameAsString() << "\n";
 	}
 }
+
+//改变方法的类型（普通，类方法）
+void callgraph::changeMethodType()
+{
+	if (type == common)
+		type = inclass;
+	else
+		type = common;
+}
+
+//设置方法的实例指针
+void callgraph::setRoot(VarDecl* r)
+{
+	root = r;
+}
+
+//获取实例指针
+VarDecl* callgraph::getRoot()
+{
+	return root;
+}
+
+//获取方法类型
+methodType callgraph::getMethodType()
+{
+	return type;
+}
+
+//设置类定义的指针
+void callgraph::setClass(CXXRecordDecl* rd)
+{
+	classDecl = rd;
+}
+CXXRecordDecl* callgraph::getClass()
+{
+	return classDecl;
+}
