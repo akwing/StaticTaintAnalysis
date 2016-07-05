@@ -58,6 +58,7 @@ void callgraph::delCallee(FunctionDecl* otherFD)
 	calleeNum--;
 }
 
+//函数名查找callgraph实例
 callgraph* findById(std::vector<callgraph*> Callgraph, std::string id)
 {
 	std::vector<callgraph*>::iterator it;
@@ -69,7 +70,7 @@ callgraph* findById(std::vector<callgraph*> Callgraph, std::string id)
 	return NULL;
 }
 
-
+//查找callgraph中的环，对其进行除环操作
 void ifcheck(std::vector<callgraph*> cg, callgraph* t)
 {
 	t->ifCheck = -1;
@@ -91,6 +92,7 @@ void ifcheck(std::vector<callgraph*> cg, callgraph* t)
 	t->ifCheck = 1;
 }
 
+//重置ifcheck
 void resetIfCheck(std::vector<callgraph*>Callgraph)
 {
 	std::vector<callgraph*>::iterator it;
@@ -98,6 +100,7 @@ void resetIfCheck(std::vector<callgraph*>Callgraph)
 		(*it)->ifCheck = 0;
 }
 
+//打印callgraph中存在的环的信息
 void getRing(std::vector<callgraph*>&Callgraph, int n, std::vector<FunctionDecl*>& ringVector)
 {
 	std::stack<FunctionDecl* > ring;
