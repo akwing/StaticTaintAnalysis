@@ -12,11 +12,11 @@ using namespace clang;
 using namespace llvm;
 
 //污染情况
-enum e_tattr{
+typedef enum{
 	TAINTED,
 	UNTAINTED,
 	RELATED
-};
+}e_tattr;
 
 //变量的污染属性
 class Tainted_Attr
@@ -72,7 +72,7 @@ public:
 		attr = b.attr;
 		relation |= b.relation;
 	}
-private:
+public:
 	//污染属性
 	e_tattr attr;
 	//污染与哪些变量相关
@@ -103,6 +103,7 @@ public:
 			newattr->relation = t->relation;
 
 			tmap[pdec] = newattr;
+			it++;
 		}
 	}
 	//析构函数
@@ -133,6 +134,7 @@ public:
 
 	void CopyMap(CTmap& b)
 	{
+		tmap.clear();
 		Tainted_Attr *t = NULL, *newattr;
 		VarDecl *pdec = NULL;
 		map<VarDecl *, Tainted_Attr *>::iterator it = b.tmap.begin(), it_end = b.tmap.end();
@@ -147,6 +149,7 @@ public:
 			newattr->relation = t->relation;
 
 			tmap[pdec] = newattr;
+			it++;
 		}
 	}
 
@@ -181,6 +184,23 @@ public:
 		else
 			return tmap[p];
 	}
+	
+	//对某个变量的污染属性值进行设置
+	void setAttr(VarDecl *p, e_tattr a, unsigned long long r)
+	{
+		int count;	
+		count = tmap.count(p);
+		if (count == 0)
+		{
+			cout << "No such variable in the function" << endl;
+			return;
+		}
+		else
+		{
+			tmap[p]->attr_set(a, r);
+		}
+	}
+
 	//将两个map中的污染属性合并
 	void AndMap(CTmap &b)
 	{
@@ -192,6 +212,10 @@ public:
 			if (b.getmap(p) != NULL)
 				(*iter).second->AndAttr(*b.getmap(p));
 		}
+	}
+	void clear()
+	{
+		tmap.clear();
 	}
 private:
 	map<VarDecl *, Tainted_Attr *> tmap;
