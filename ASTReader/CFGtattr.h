@@ -1,3 +1,6 @@
+#ifndef CFGTATTR_H
+#define CFGTATTR_H
+
 #include"tmap.h"
 #include"clang\Analysis\CFG.h"
 
@@ -32,7 +35,8 @@ public:
 	}
 };
 
-Tainted_Attr *checkCFG(clang::CFG &cfg);
-
+Tainted_Attr *checkCFG(clang::CFG &cfg, CTmap &tm, clang::FunctionDecl *fd);
 bool buildmap(clang::CFG &cfg, CTmap &tm);
 void build_block_io_table(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *CFGexit, clang::CFGBlock *block, CTmap &tm);
+
+#endif
