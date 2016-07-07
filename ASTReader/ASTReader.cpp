@@ -26,6 +26,10 @@ int main(int argc, char *argv[]) {
 
 	std::vector<CallExpr*>  func2;
 	std::vector<CallExpr*>::iterator it2;
+	std::vector<VarDecl*> varDec;
+	std::vector<VarDecl*>::iterator itvarDec;
+	std::vector<ParmVarDecl*> parmDec;
+	std::vector<ParmVarDecl*>::iterator itParmDec;
 	std::vector<callgraph*> Callgraph;
 	callgraph* temp;
 	//add cur->callee
@@ -37,15 +41,38 @@ int main(int argc, char *argv[]) {
 		ASTCallExprLoad load2;
 		load2.TraverseStmt((*it)->getBody());
 		func2 = load2.getCallExprs();
+		//添加调用的函数callee
 		for (it2 = func2.begin(); it2 != func2.end(); it2++)
 		{
 			temp = findById(Callgraph, (*it)->getQualifiedNameAsString());
 			temp->addCallee((*it2)->getDirectCallee());
 			//	std::cout << (*it)->getQualifiedNameAsString() << " -> " << (*it2)->getDirectCallee()->getQualifiedNameAsString() << std::endl;
 		}
+
+
+		//把参数加入Tmap
+		int paramNum=(*it)->getNumParams();
+		//VarDecl* parmTemp;
+		if (paramNum > 0)
+		{
+			for (int i = 0; i < paramNum; i++)
+			{
+				tempCallNode->addParam((*it)->getParamDecl(i));
+			}
+		}
+		
+		//把中间变量加入Tmap
+		ASTVarDeclLoad loadVar;
+		loadVar.TraverseStmt((*it)->getBody());
+		std::vector<VarDecl*> varList = loadVar.getVariables();
+		for (std::vector<VarDecl*>::iterator varIt = varList.begin(); varIt != varList.end(); varIt++)
+		{
+			//std::cout << (*varIt)->getQualifiedNameAsString() << "\n";
+			tempCallNode->addVar(*varIt);
+		}
 	}
 
-	//add caller->cur
+	//添加调用本函数的其他函数caller
 	std::vector<callgraph*>::iterator it3;
 	for (it = func.begin(); it != func.end(); it++)
 	{
@@ -67,18 +94,8 @@ int main(int argc, char *argv[]) {
 
 	resetIfCheck(Callgraph);
 	ifcheck(Callgraph, *Callgraph.begin());
-	//printCallGraph(Callgraph);
-
-	//(*Callgraph.begin())->print_cfg();
 	
-	ASTCXXRecorderLoad classLoad;
-	classLoad.HandleTranslationUnit(context);
-	std::vector<CXXRecordDecl*> cxxrds = classLoad.getClassDecl();
-
-	ASTCXXMethodDeclLoad classMethodLoad;
-	classMethodLoad.HandleTranslationUnit(context);
-	std::vector<CXXMethodDecl*> cxxrds = classMethodLoad.getClassDecl();
-	
+	printCallGraph(Callgraph);
 	return 0;
 }
 
