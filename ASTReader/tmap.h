@@ -1,3 +1,6 @@
+#ifndef TMAP_H
+#define TMAP_H
+
 #include <iostream>
 #include <map>
 #include <vector>
@@ -116,6 +119,7 @@ public:
 		{
 			t = (*iter).second;
 			delete t;	//释放临时变量的空间
+			iter++;
 		}
 		tmap.clear();	//清空所有元素
 	}
@@ -129,6 +133,7 @@ public:
 		{
 			t = (*iter).second;
 			t->output();
+			iter++;
 		}
 	}
 
@@ -211,12 +216,30 @@ public:
 			p = (*iter).first;
 			if (b.getmap(p) != NULL)
 				(*iter).second->AndAttr(*b.getmap(p));
+			iter++;
 		}
 	}
+
+	//清空map中的元素
 	void clear()
 	{
 		tmap.clear();
 	}
+
+	//获取第n个变量定义
+	VarDecl *get_VarDecl(int n)
+	{
+		int i = 0;
+		map<VarDecl *, Tainted_Attr *>::iterator iter = tmap.begin(), iter_end = tmap.end();
+		for (; iter != iter_end; iter++)
+		{
+			if (i == n)
+				return iter->first;
+		}
+		return NULL;
+	}
 private:
 	map<VarDecl *, Tainted_Attr *> tmap;
 };
+
+#endif
