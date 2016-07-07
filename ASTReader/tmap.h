@@ -46,7 +46,7 @@ public:
 			std::cout << "UN ";
 		else
 			std::cout << "RE ";
-		std::cout << relation << endl;
+		std::cout << relation;
 	}
 	//信息设置函数
 	void attr_set(e_tattr a, unsigned long long r)
@@ -101,7 +101,7 @@ public:
 			pdec = (*it).first;
 			t = (*it).second;
 			newattr = new Tainted_Attr;
-			
+
 			newattr->attr = t->attr;
 			newattr->relation = t->relation;
 
@@ -114,7 +114,7 @@ public:
 	{
 		Tainted_Attr *t;
 		map<VarDecl *, Tainted_Attr *>::iterator iter = tmap.begin(), iter_end = tmap.end();
-		
+
 		while (iter != iter_end)
 		{
 			t = (*iter).second;
@@ -123,7 +123,7 @@ public:
 		}
 		tmap.clear();	//清空所有元素
 	}
-	
+
 	void output()
 	{
 		Tainted_Attr *t;
@@ -131,8 +131,9 @@ public:
 
 		while (iter != iter_end)
 		{
-			t = (*iter).second;
-			t->output();
+			std::cout << iter->first->getQualifiedNameAsString() << " ";
+			iter->second->output();
+			cout << endl;
 			iter++;
 		}
 	}
@@ -162,7 +163,7 @@ public:
 	void insert(VarDecl *p)
 	{
 		Tainted_Attr *t = new Tainted_Attr();
-		
+
 		int count;
 		count = tmap.count(p);
 		if (count == 0)
@@ -184,16 +185,16 @@ public:
 	{
 		int count;
 		count = tmap.count(p);
-		if(count == 0)
+		if (count == 0)
 			return NULL;
 		else
 			return tmap[p];
 	}
-	
+
 	//对某个变量的污染属性值进行设置
 	void setAttr(VarDecl *p, e_tattr a, unsigned long long r)
 	{
-		int count;	
+		int count;
 		count = tmap.count(p);
 		if (count == 0)
 		{
