@@ -250,7 +250,10 @@ void printCallGraph(std::vector<callgraph*> Callgraph)
 		{
 			for (int i = 0; i < varNum; i++)
 			{
-				std::cout << "\t\t" << map.get_VarDecl(i+paramNum)->getQualifiedNameAsString() << "\n";
+				VarDecl* tt = map.get_VarDecl(i + paramNum);
+				std::cout << "\t\t" << tt->getQualifiedNameAsString() << "    ";
+				map.getmap(tt)->output();
+				std::cout<< "\n";
 			}
 		}
 		
