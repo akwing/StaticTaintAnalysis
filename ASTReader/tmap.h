@@ -235,6 +235,7 @@ public:
 		{
 			if (i == n)
 				return iter->first;
+			i++;
 		}
 		return NULL;
 	}
