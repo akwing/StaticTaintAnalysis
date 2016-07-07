@@ -31,9 +31,9 @@ private:
 class ASTCalledFunctionLoad : public RecursiveASTVisitor<ASTCalledFunctionLoad> {
 public:
 	bool VisitCallExpr(CallExpr *E);
-	const std::vector<FunctionDecl *> getFunctions();
+	const std::vector<FunctionDecl *>& getFunctions();
 private:
-	std::set<FunctionDecl *> functions;
+	std::vector<FunctionDecl *> functions;
 };
 
 //调用函数语句
@@ -41,161 +41,51 @@ class ASTCallExprLoad : public RecursiveASTVisitor<ASTCallExprLoad> {
 
 public:
 	bool VisitCallExpr(CallExpr *E);
-	const std::vector<CallExpr *> getCallExprs();
+	const std::vector<CallExpr *>& getCallExprs();
 private:
 	std::vector<CallExpr *> call_exprs;
 };
-/*
-class ASTDeclStmtLoad : public RecursiveASTVisitor<ASTDeclStmtLoad> {	//get call functions
-
-public:
-	bool VisitDeclStmt(DeclStmt *E) {//////////////////////
-		decl_stmts.insert(E);
-		return true;
-	}
-
-	const std::vector<FunctionDecl *> getFunctions() {
-		return std::vector<FunctionDecl *>(decl_stmts.begin(), decl_stmts.end());
-	}
-
-private:
-	std::set<DeclStmt *> decl_stmts;
-};
-*/
 
 //变量定义
 class ASTVarDeclLoad : public RecursiveASTVisitor<ASTVarDeclLoad> {
 
 public:
 	bool VisitDeclStmt(DeclStmt *S);
-	const std::vector<VarDecl *> getVariables();
+	const std::vector<VarDecl *>& getVariables();
 private:
 	std::vector<VarDecl *> variables;
 };
 
 //获取类decl
-class ASTCXXRecorderLoad : public ASTConsumer, public RecursiveASTVisitor<ASTCXXRecorderLoad> {
+class ASTCXXRecordLoad : public ASTConsumer, public RecursiveASTVisitor<ASTCXXRecordLoad> {
 public:
-	void HandleTranslationUnit(ASTContext &Context) override {
-		TranslationUnitDecl *D = Context.getTranslationUnitDecl();
-		TraverseDecl(D);
-	}
-
-	bool VisitClassDecl(CXXRecordDecl *rd) {
-		cxxrds.insert(rd);
-		return true;
-	}
-
-	const std::vector<CXXRecordDecl *> getClassDecl() {
-		return std::vector<CXXRecordDecl *>(cxxrds.begin(), cxxrds.end());
-	}
+	void HandleTranslationUnit(ASTContext &Context) override;
+	bool VisitCXXRecordDecl(CXXRecordDecl *rd);
+	const std::vector<CXXRecordDecl *>& getClassDecl();
 
 private:
-	std::set<CXXRecordDecl *> cxxrds;
+	std::vector<CXXRecordDecl *> cxxrds;
 };
 
 //获取类方法decl
-/*class ASTCXXMethodDeclLoad : public ASTConsumer, public RecursiveASTVisitor<ASTCXXMethodDeclLoad> {
+class ASTCXXMethodDeclLoad :public RecursiveASTVisitor<ASTCXXMethodDeclLoad> {
 public:
-	void HandleTranslationUnit(ASTContext &Context) override {
-		TranslationUnitDecl *D = Context.getTranslationUnitDecl();
-		TraverseDecl(D);
-	}
-
-	bool VisitClassDecl(CXXMethodDecl *rd) {
-		cxxmds.insert(rd);
-		return true;
-	}
-
-	const std::vector<CXXMethodDecl *> getClassMethodDecl() {
-		return std::vector<CXXMethodDecl *>(cxxmds.begin(), cxxmds.end());
-	}
+	bool VisitCXXMethodDecl(CXXMethodDecl *rd);
+	const std::vector<CXXMethodDecl *>& getCXXMethodDecl();
 
 private:
-	std::set<CXXMethodDecl *> cxxmds;
-};*/
-
-
-//获取类构造函数decl
-/*class ASTCXXConstructorDeclLoad : public ASTConsumer, public RecursiveASTVisitor<ASTCXXConstructorDeclLoad> {
-public:
-	void HandleTranslationUnit(ASTContext &Context) override {
-		TranslationUnitDecl *D = Context.getTranslationUnitDecl();
-		TraverseDecl(D);
-	}
-
-	bool VisitClassDecl(CXXConstructorDecl *rd) {
-		cxxcds.insert(rd);
-		return true;
-	}
-
-	const std::vector<CXXConstructorDecl *> getClassConstructorDecl() {
-		return std::vector<CXXConstructorDecl *>(cxxcds.begin(), cxxcds.end());
-	}
-
-private:
-	std::set<CXXConstructorDecl *> cxxcds;
-};*/
-
-typedef enum
-{
-	common,inclass
-}methodType;
-
-
-
-
-//函数调用关系图
-class callgraph{
-public:
-	callgraph(FunctionDecl* f1);
-	callgraph(FunctionDecl* f1, FunctionDecl* f2);
-	FunctionDecl* getCaller(int i);		//调用cur
-	FunctionDecl* getCallee(int i);		//被cur调用
-	FunctionDecl* getCur();
-	int getCallerNum();
-	int getCalleeNum();
-	void addCaller(FunctionDecl* otherFD);
-	void addCallee(FunctionDecl* otherFD);
-	void delCallee(FunctionDecl* otherFD);
-	void changeMethodType();
-	void setRoot(VarDecl* r);
-	void setClass(CXXRecordDecl* rd);
-	CXXRecordDecl* getClass();
-	VarDecl* getRoot();
-	methodType getMethodType();
-	int ifCheck;
-
-public:
-	std::unique_ptr<CFG> get_cfg();
-	void print_cfg();
-	CTmap& getCTmap();
-	void addParam(VarDecl* vd);
-	void addVar(VarDecl* vd);
-	int getParamNum();
-	int getVarNum();
-
-private:
-	//方法的类型
-	methodType type;
-	//类方法所属的实例
-	VarDecl* root;
-	CXXRecordDecl* classDecl;
-	FunctionDecl* caller[10];
-	FunctionDecl* cur;
-	FunctionDecl* callee[10];
-	//std::unique_ptr<CFG> cfg;
-	int callerNum, calleeNum;
-	CTmap* map;
-	int paramNum;
-	int varNum;
-	Tainted_Attr* returnVar;
+	std::vector<CXXMethodDecl *> cxxmds;
 };
 
-callgraph* findById(std::vector<callgraph*> Callgraph, std::string id);		
-void ifcheck(std::vector<callgraph*> cg, callgraph* t);		
-void resetIfCheck(std::vector<callgraph*>Callgraph);		
-void getRing(std::vector<callgraph*>& Callgraph, int n, std::vector<FunctionDecl*>& ringVector);	
-void printCallGraph(std::vector<callgraph*> Callgraph);	
+//获取类变量decl
+class ASTFieldDeclLoad :public RecursiveASTVisitor<ASTFieldDeclLoad> {
+public:
+	bool VisitFieldDecl(FieldDecl *fd);
+	const std::vector<FieldDecl *>& getFieldDecl();
+
+private:
+	std::vector<FieldDecl *> fds;
+};
+
 
 #endif
