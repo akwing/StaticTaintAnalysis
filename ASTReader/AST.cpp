@@ -1,4 +1,90 @@
 #include "AST.h"
+//ASTFunctionLoad
+void ASTFunctionLoad::HandleTranslationUnit(ASTContext &Context){
+	TranslationUnitDecl *D = Context.getTranslationUnitDecl();
+	TraverseDecl(D);
+}
+
+bool ASTFunctionLoad::VisitFunctionDecl(FunctionDecl *FD) {
+	if (FD && FD->isThisDeclarationADefinition()) {
+		// Add C non-inline function 
+		if (!FD->isInlined()){
+			functions.push_back(FD);
+		}
+	}
+	return true;
+}
+
+const std::vector<FunctionDecl *> &ASTFunctionLoad::getFunctions() const{
+	return functions;
+}
+
+//ASTCalledFunctionLoad
+bool ASTCalledFunctionLoad::VisitCallExpr(CallExpr *E) {
+	if (FunctionDecl *FD = E->getDirectCallee()) {
+		functions.insert(FD);
+	}
+	return true;
+}
+
+const std::vector<FunctionDecl *> ASTCalledFunctionLoad::getFunctions() {
+	return std::vector<FunctionDecl *>(functions.begin(), functions.end());
+}
+
+//ASTCallExprLoad
+bool ASTCallExprLoad::VisitCallExpr(CallExpr *E) {
+	call_exprs.push_back(E);
+	return true;
+}
+
+const std::vector<CallExpr *> ASTCallExprLoad::getCallExprs() {
+	return call_exprs;
+}
+
+//ASTVarDeclLoad
+bool ASTVarDeclLoad::VisitDeclStmt(DeclStmt *S) {
+	for (auto D : S->decls()) {
+		if (VarDecl *VD = dyn_cast<VarDecl>(D)) {
+			variables.push_back(VD);
+		}
+	}
+	return true;
+}
+const std::vector<VarDecl *> ASTVarDeclLoad::getVariables() {
+	return variables;
+}
+
+//构造函数
+callgraph::callgraph(FunctionDecl* f1)
+{
+	cur = f1;
+	callerNum = 0;
+	calleeNum = 0;
+	ifCheck = 0;
+	type = common;
+	classDecl = NULL;
+	map = new CTmap();
+	paramNum = 0;
+	varNum = 0;
+	returnVar = new Tainted_Attr();
+}
+
+//构造函数（带有一个callee）
+callgraph::callgraph(FunctionDecl* f1, FunctionDecl* f2)
+{
+	cur = f1;
+	callee[0] = f2;
+	callerNum = 0;
+	calleeNum = 1;
+	ifCheck = 0;
+	type = common;
+	classDecl = NULL;
+	map = new CTmap();
+	paramNum = 0;
+	varNum = 0;
+	returnVar = new Tainted_Attr();
+}
+
 FunctionDecl* callgraph::getCaller(int i)
 {
 	if (0 <= i&& i < 10)
@@ -150,7 +236,24 @@ void printCallGraph(std::vector<callgraph*> Callgraph)
 	std::vector<callgraph*>::iterator it3;
 	for (it3 = Callgraph.begin(); it3 != Callgraph.end(); it3++)
 	{
-		std::cout << (*it3)->getCur()->getQualifiedNameAsString() << ":\n";
+		std::cout << (*it3)->getCur()->getQualifiedNameAsString() << "\n";
+		int paramNum = (*it3)->getCur()->getNumParams();
+		std::cout << "\tParamNum: " << paramNum << "\n";
+		if (paramNum > 0)
+			for (unsigned i = 0; i < (*it3)->getCur()->getNumParams(); i++)
+				std::cout << "\t\t" << (*it3)->getCur()->getParamDecl(i)->getQualifiedNameAsString() << "\n";
+
+		int varNum = (*it3)->getVarNum();
+		CTmap map = (*it3)->getCTmap();
+		std::cout << "\tVarNum: " << varNum << "\n";
+		if (varNum > 0)
+		{
+			for (int i = 0; i < varNum; i++)
+			{
+				std::cout << "\t\t" << map.get_VarDecl(i+paramNum)->getQualifiedNameAsString() << "\n";
+			}
+		}
+		
 		int j = (*it3)->getCallerNum();
 		std::cout << "\tcaller:" << j << "\n";
 		for (int i = 0; i < j; i++)
@@ -197,4 +300,46 @@ void callgraph::setClass(CXXRecordDecl* rd)
 CXXRecordDecl* callgraph::getClass()
 {
 	return classDecl;
+}
+
+//获取当前函数语句块信息指针
+std::unique_ptr<CFG> callgraph::get_cfg()
+{
+	return CFG::buildCFG(cur, cur->getBody(), &cur->getASTContext(), CFG::BuildOptions());
+}
+
+//打印cfg信息，使用dump()
+void callgraph::print_cfg()
+{
+	get_cfg()->dump(LangOptions(), true);
+}
+
+//获取当前函数Tmap指针
+CTmap& callgraph::getCTmap()
+{
+	return *map;
+}
+
+//添加参数
+void callgraph::addParam(VarDecl* vd)
+{
+	map->insert(vd);
+	paramNum++;
+}
+
+//添加变量
+void callgraph::addVar(VarDecl* vd)
+{
+	map->insert(vd);
+	varNum++;
+}
+
+int callgraph::getParamNum()
+{ 
+	return paramNum; 
+}
+
+int callgraph::getVarNum()
+{ 
+	return varNum; 
 }
