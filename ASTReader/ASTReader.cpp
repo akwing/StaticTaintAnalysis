@@ -1,7 +1,10 @@
 #include "AST.h"
-//#include "buildCFG.h"
-
-void printCallGraph(std::vector<callgraph*> Callgraph);
+#include "callgraph.h"
+#include "classTmap.h"
+//Callgraph
+std::vector<callgraph*> Callgraph;
+std::vector<classTmap*> ClassTmap;
+//void printCallGraph(std::vector<callgraph*> Callgraph);
 
 int main(int argc, char *argv[]) {
 
@@ -11,13 +14,13 @@ int main(int argc, char *argv[]) {
 
 	std::unique_ptr<ASTUnit> AU = ASTUnit::LoadFromASTFile(argv[1], compiler.getPCHContainerReader(), Diags, opts);
 
-
 	//std::cout << AU->getASTFileName().str() << std::endl;
 	ASTContext &context = AU->getASTContext();
 	ASTFunctionLoad load;
 	load.HandleTranslationUnit(context);
 	std::vector<FunctionDecl*>  func = load.getFunctions();
 
+	
 	
 	std::vector<FunctionDecl*>::iterator it;
 	//for (it = func.begin(); it != func.end(); it++)
@@ -30,7 +33,7 @@ int main(int argc, char *argv[]) {
 	std::vector<VarDecl*>::iterator itvarDec;
 	std::vector<ParmVarDecl*> parmDec;
 	std::vector<ParmVarDecl*>::iterator itParmDec;
-	std::vector<callgraph*> Callgraph;
+
 	callgraph* temp;
 	//add cur->callee
 	for (it = func.begin(); it != func.end(); it++)
@@ -96,6 +99,45 @@ int main(int argc, char *argv[]) {
 	ifcheck(Callgraph, *Callgraph.begin());
 	
 	printCallGraph(Callgraph);
+
+	//check class
+	ASTCXXRecordLoad loadClass;
+	loadClass.HandleTranslationUnit(context);
+	std::vector<CXXRecordDecl*>   cxxrds= loadClass.getClassDecl();
+	//std::cout << cxxrds.size()<< "\n";
+	std::vector<CXXRecordDecl*>::iterator rd_it,rd_it_end=cxxrds.end();
+
+	for (rd_it = cxxrds.begin(); rd_it != rd_it_end; rd_it++)
+	{
+		//在ClassTmap中加入新发现的class
+		classTmap* curClass = new classTmap();
+		curClass->setCXXRecordDecl(*rd_it);
+		ClassTmap.push_back(curClass);
+
+		ASTCXXMethodDeclLoad loadClassMethod;
+		std::vector<CXXMethodDecl *> cxxmds;
+		std::vector<CXXMethodDecl *>::iterator it_cxxmds;
+		//std::cout << (*rd_it)->getQualifiedNameAsString() << "\n";
+		loadClassMethod.TraverseDecl(*rd_it);
+		cxxmds = loadClassMethod.getCXXMethodDecl();
+		for (it_cxxmds = cxxmds.begin(); it_cxxmds != cxxmds.end(); it_cxxmds++)
+		{
+			curClass->addMethod(*it_cxxmds);
+			//std::cout << (*it_cxxmds)->getQualifiedNameAsString() << "\n";
+		}
+
+		ASTFieldDeclLoad loadClassVar;
+		std::vector<FieldDecl*> fds;
+		std::vector<FieldDecl*>::iterator it_fds;
+		loadClassVar.TraverseDecl(*rd_it);
+		fds = loadClassVar.getFieldDecl();
+		for (it_fds = fds.begin(); it_fds != fds.end(); it_fds++)
+		{
+			curClass->addVar(*it_fds);
+			//std::cout << (*it_fds)->getQualifiedNameAsString() << "\n";
+		}
+	}
+	printClassTmap(ClassTmap);
 	return 0;
 }
 
