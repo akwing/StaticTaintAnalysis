@@ -1,20 +1,24 @@
 #include"CFGtattr.h"
+#include"AST.h"
 
 //对函数的CFG进行迭代分析
-Tainted_Attr *checkCFG(clang::CFG &cfg, CTmap &tm, clang::FunctionDecl *fd)
+void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 {
 	
-	clang::CFGBlock* CFGentry = &cfg.getEntry(), *CFGexit = &cfg.getExit();
+	clang::CFGBlock* CFGentry = &(cfg.getEntry()), *CFGexit = &(cfg.getExit());
+	clang::CFGBlock::succ_iterator succ_it, succ_end;
 	
-	//扫描函数内部变量定义，创建污染表
 	CTmap *outm = NULL, *inm = NULL;
-	
 	map<clang::CFGBlock *, CFGInOut> block_io_map;
 	
-	build_block_io_table(block_io_map, CFGexit, CFGentry, tm);
+	cout<<"test B"<<CFGentry->getBlockID()<<endl;
+	return;
+	cg->print_cfg();
 
+	build_block_io_table(block_io_map, CFGexit, CFGentry, tm);
+	printiotable(block_io_map);
 	//主循环，当无OUT发生改变时跳出循环
-	while (1)
+/*	while (1)
 	{
 		bool changed = false;
 
@@ -23,7 +27,7 @@ Tainted_Attr *checkCFG(clang::CFG &cfg, CTmap &tm, clang::FunctionDecl *fd)
 		{
 			//block-in = Upred it->pred
 			//即对block的前驱的out求并，作为该block的in
-			clang::CFGBlock::succ_iterator succ_it = it->first->succ_begin(), succ_end = it->first->succ_end();
+			succ_it = it->first->succ_begin(), succ_end = it->first->succ_end();
 			clang::CFGBlock* temp = NULL;
 
 			inm = it->second.GetIN();
@@ -47,15 +51,17 @@ Tainted_Attr *checkCFG(clang::CFG &cfg, CTmap &tm, clang::FunctionDecl *fd)
 
 		if (changed == true)
 			break;
-	}
-
+	}*/
+	//here to add output
+	
 }
 
 //为每个语句块创建INOUT污染表
 void build_block_io_table(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *CFGexit, clang::CFGBlock *block, CTmap &tm)
 {
 	map<clang::CFGBlock *, CFGInOut>::iterator t = block_io_map.find(block);
-	
+
+	cout<<"create B" << block->getBlockID() << endl;
 	//判断该块是否已添加过
 	if (t != block_io_map.end())
 		return;
@@ -71,6 +77,27 @@ void build_block_io_table(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang:
 	{
 		//递归创建表
 		build_block_io_table(block_io_map, CFGexit, (*it).getReachableBlock(), tm);
+		it++;
+	}
+}
+
+//打印一个block的污染信息
+void printBlockMsg(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *block)
+{
+	block->getBlockID();
+	cout << endl << "B" << block->getBlockID() <<":" << endl <<"IN"<<endl;
+	block_io_map[block].GetIN()->output();
+	cout << endl << "OUT";
+	block_io_map[block].GetOUT()->output();
+}
+
+//打印当前函数中每个block的污染信息
+void printiotable(map<clang::CFGBlock *, CFGInOut> &block_io_map)
+{
+	map<clang::CFGBlock *, CFGInOut>::iterator it = block_io_map.begin(), it_end = block_io_map.end();
+	while (it != it_end)
+	{
+		printBlockMsg(block_io_map, it->first);
 		it++;
 	}
 }
