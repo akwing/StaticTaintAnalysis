@@ -61,7 +61,7 @@ void ASTCXXRecordLoad::HandleTranslationUnit(ASTContext &Context){
 }
 
 bool ASTCXXRecordLoad::VisitCXXRecordDecl(CXXRecordDecl *cxxrd) {
-	if (rd && rd->isThisDeclarationADefinition())
+	if (cxxrd && cxxrd->isThisDeclarationADefinition())
 	{
 		cxxrds.push_back(cxxrd);
 	}
