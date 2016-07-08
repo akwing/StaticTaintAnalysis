@@ -5,20 +5,20 @@
 void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 {
 	
-	clang::CFGBlock* CFGentry = &(cfg.getEntry()), *CFGexit = &(cfg.getExit());
+	clang::CFGBlock* CFGentry = &((*cfg).getEntry()), *CFGexit = &((*cfg).getExit());
 	clang::CFGBlock::succ_iterator succ_it, succ_end;
 	
 	CTmap *outm = NULL, *inm = NULL;
 	map<clang::CFGBlock *, CFGInOut> block_io_map;
 	
-	cout<<"test B"<<CFGentry->getBlockID()<<endl;
-	return;
-	cg->print_cfg();
+///	cout<<"test B"<<CFGentry->getBlockID()<<endl;
+//	return;
+//	cg->print_cfg();
 
 	build_block_io_table(block_io_map, CFGexit, CFGentry, tm);
 	printiotable(block_io_map);
 	//主循环，当无OUT发生改变时跳出循环
-/*	while (1)
+	while (1)
 	{
 		bool changed = false;
 
@@ -49,9 +49,9 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 			
 		}
 
-		if (changed == true)
+		if (changed == false)
 			break;
-	}*/
+	}
 	//here to add output
 	
 }
