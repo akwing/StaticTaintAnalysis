@@ -4,11 +4,12 @@
 
 typedef enum
 {
-	common, inclass
-}methodType;
+	COMMON, INCLASS
+} methodType;
 
 //函数调用关系图
-class callgraph{
+class callgraph
+{
 public:
 	callgraph(FunctionDecl* f1);
 	callgraph(FunctionDecl* f1, FunctionDecl* f2);
