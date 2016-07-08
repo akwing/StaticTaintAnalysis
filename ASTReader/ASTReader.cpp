@@ -169,6 +169,14 @@ int main(int argc, char *argv[]) {
 	printCallGraph(Callgraph);
 
 	printClassTmap(ClassTmap);
+	
+	std::vector<callgraph*>::iterator it3;
+	it3 = Callgraph.begin();
+	for (; it3 != Callgraph.end(); it3++)
+	{
+		checkCFG((*it3)->get_cfg(), (*it3)->getCTmap(), *it3);
+	}
+	
 	return 0;
 }
 
