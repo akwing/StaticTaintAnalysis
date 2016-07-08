@@ -251,7 +251,7 @@ CXXRecordDecl* callgraph::getClass()
 }
 
 //获取当前函数语句块信息指针
-std::unique_ptr<CFG> callgraph::get_cfg()
+std::unique_ptr<CFG>& callgraph::get_cfg()
 {
 	cfg=CFG::buildCFG(cur, cur->getBody(), &cur->getASTContext(), CFG::BuildOptions());
 	return cfg;
