@@ -253,13 +253,14 @@ CXXRecordDecl* callgraph::getClass()
 //获取当前函数语句块信息指针
 std::unique_ptr<CFG> callgraph::get_cfg()
 {
-	return CFG::buildCFG(cur, cur->getBody(), &cur->getASTContext(), CFG::BuildOptions());
+	cfg=CFG::buildCFG(cur, cur->getBody(), &cur->getASTContext(), CFG::BuildOptions());
+	return cfg;
 }
 
 //打印cfg信息，使用dump()
 void callgraph::print_cfg()
 {
-	get_cfg()->dump(LangOptions(), true);
+	(*cfg).dump(LangOptions(), true);
 }
 
 //获取当前函数Tmap指针
