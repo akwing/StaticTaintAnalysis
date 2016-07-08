@@ -3,6 +3,7 @@
 
 #include "tmap.h"
 #include "AST.h"
+#include "callgraph.h"
 #include "clang\Analysis\CFG.h"
 
 using namespace std;
