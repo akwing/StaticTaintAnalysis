@@ -1,8 +1,9 @@
 #ifndef CFGTATTR_H
 #define CFGTATTR_H
 
-#include"tmap.h"
-#include"clang\Analysis\CFG.h"
+#include "tmap.h"
+#include "AST.h"
+#include "clang\Analysis\CFG.h"
 
 using namespace std;
 using namespace clang;
@@ -15,6 +16,9 @@ private:
 	CTmap IN, OUT;
 public:
 	//拷贝构造函数
+	CFGInOut()
+	{
+	}
 	CFGInOut(CTmap& b)
 	{
 		IN.CopyMap(b);
@@ -32,11 +36,15 @@ public:
 	{
 		IN.CopyMap(tm);
 		OUT.CopyMap(tm);
+		cout << "in" << endl;
+		IN.output();
+		cout << "out" << endl;
+		OUT.output();
 	}
 };
 
-Tainted_Attr *checkCFG(clang::CFG &cfg, CTmap &tm, clang::FunctionDecl *fd);
-bool buildmap(clang::CFG &cfg, CTmap &tm);
+void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg);
 void build_block_io_table(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *CFGexit, clang::CFGBlock *block, CTmap &tm);
-
+void printBlockMsg(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *block);
+void printiotable(map<clang::CFGBlock *, CFGInOut> &block_io_map);
 #endif

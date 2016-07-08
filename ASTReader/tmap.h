@@ -126,9 +126,7 @@ public:
 
 	void output()
 	{
-		Tainted_Attr *t;
 		map<VarDecl *, Tainted_Attr *>::iterator iter = tmap.begin(), iter_end = tmap.end();
-
 		while (iter != iter_end)
 		{
 			std::cout << iter->first->getQualifiedNameAsString() << " ";
