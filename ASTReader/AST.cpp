@@ -60,8 +60,11 @@ void ASTCXXRecordLoad::HandleTranslationUnit(ASTContext &Context){
 	TraverseDecl(D);
 }
 
-bool ASTCXXRecordLoad::VisitCXXRecordDecl(CXXRecordDecl *rd) {
-	cxxrds.push_back(rd);
+bool ASTCXXRecordLoad::VisitCXXRecordDecl(CXXRecordDecl *cxxrd) {
+	if (rd && rd->isThisDeclarationADefinition())
+	{
+		cxxrds.push_back(cxxrd);
+	}
 	return true;
 }
 
@@ -70,8 +73,11 @@ const std::vector<CXXRecordDecl *>& ASTCXXRecordLoad::getClassDecl() {
 }
 
 //ASTCXXMethodDecl
-bool ASTCXXMethodDeclLoad::VisitCXXMethodDecl(CXXMethodDecl *rd) {
-	cxxmds.push_back(rd);
+bool ASTCXXMethodDeclLoad::VisitCXXMethodDecl(CXXMethodDecl *cxxmd) {
+	if (cxxmd && cxxmd->isThisDeclarationADefinition())
+	{
+		cxxmds.push_back(cxxmd);
+	}
 	return true;
 }
 
