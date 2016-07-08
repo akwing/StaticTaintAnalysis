@@ -27,7 +27,7 @@ public:
 	int ifCheck;
 
 public:
-	std::unique_ptr<CFG> get_cfg();
+	std::unique_ptr<CFG>& get_cfg();
 	void print_cfg();
 	CTmap& getCTmap();
 	void addParam(VarDecl* vd);
@@ -44,7 +44,7 @@ private:
 	FunctionDecl* caller[10];
 	FunctionDecl* cur;
 	FunctionDecl* callee[10];
-	//std::unique_ptr<CFG> cfg;
+	std::unique_ptr<CFG> cfg;
 	int callerNum, calleeNum;
 	CTmap* map;
 	int paramNum;
