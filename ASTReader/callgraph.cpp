@@ -18,7 +18,7 @@ callgraph::callgraph(FunctionDecl* f1)
 callgraph::callgraph(FunctionDecl* f1, FunctionDecl* f2)
 {
 	cur = f1;
-	callee[0] = f2;
+	callee.push_back(f2);
 	callerNum = 0;
 	calleeNum = 1;
 	ifCheck = 0;
@@ -30,20 +30,14 @@ callgraph::callgraph(FunctionDecl* f1, FunctionDecl* f2)
 	returnVar = new Tainted_Attr();
 }
 
-FunctionDecl* callgraph::getCaller(int i)
+std::vector<FunctionDecl*>& callgraph::getCaller()
 {
-	if (0 <= i&& i < 10)
-		return caller[i];
-	else
-		return NULL;
+	return caller;
 }
 
-FunctionDecl* callgraph::getCallee(int i)
+std::vector<FunctionDecl*>& callgraph::getCallee()
 {
-	if (0 <= i&&i < 10)
-		return callee[i];
-	else
-		return NULL;
+	return callee;
 }
 
 FunctionDecl* callgraph::getCur()
@@ -62,31 +56,26 @@ int callgraph::getCalleeNum()
 }
 
 void callgraph::addCaller(FunctionDecl* otherFD){
-	caller[callerNum] = otherFD;
+	caller.push_back(otherFD);
 	callerNum++;
 }
 
 void callgraph::addCallee(FunctionDecl* otherFD){
-	callee[calleeNum] = otherFD;
+	callee.push_back(otherFD);
 	calleeNum++;
 }
 
 
 void callgraph::delCallee(FunctionDecl* otherFD)
 {
-	int j;
-	for (int i = 0; i < calleeNum&&i < 10; i++)
-		if (callee[i] == otherFD)
+	std::vector<FunctionDecl*>::iterator it_caller;
+	std::vector<FunctionDecl*>::iterator it_callee;
+	for (it_callee = callee.begin(); it_callee != callee.end(); it_callee++)
+		if ((*it_callee) == otherFD)
 		{
-			j = i;
+			callee.erase(it_callee);
 			break;
 		}
-	for (int i = j; i < calleeNum - 1 && i < 9; i++)
-	{
-		callee[i] = callee[i + 1];
-	}
-	callee[callerNum] = NULL;
-	calleeNum--;
 }
 
 //函数名查找callgraph实例
@@ -105,16 +94,18 @@ callgraph* findById(std::vector<callgraph*> Callgraph, std::string id)
 void ifcheck(std::vector<callgraph*> cg, callgraph* t)
 {
 	t->ifCheck = -1;
-	for (int i = 0; i < t->getCalleeNum(); i++)
+	std::vector<FunctionDecl*>::iterator it_callee;
+	std::vector<FunctionDecl*> callee = t->getCallee();
+	for (it_callee=callee.begin(); it_callee != callee.end(); it_callee++)
 	{
-		FunctionDecl* tempt = t->getCallee(i);
+		FunctionDecl* tempt = *it_callee;
 		callgraph* tempc = findById(cg, tempt->getQualifiedNameAsString());
 		if (tempc != NULL)
 		{
 			if (tempc->ifCheck == -1)
 			{
 				t->delCallee(tempt);
-				i--;
+				it_callee--;//=================
 			}
 			else
 				ifcheck(cg, tempc);
@@ -137,17 +128,19 @@ void getRing(std::vector<callgraph*>&Callgraph, int n, std::vector<FunctionDecl*
 	std::stack<FunctionDecl* > ring;
 	std::vector<callgraph*>::iterator it, it4;
 	std::vector<FunctionDecl*>::iterator it2, it3;
+	std::vector<FunctionDecl*>::iterator it_callee;
+	
 	//FunctionDecl* temp;
 	it = Callgraph.begin() + n;
 	if ((*it)->ifCheck == 0)//new node
 	{
+		std::vector<FunctionDecl*> callee = (*it)->getCallee();
 		ringVector.push_back((*it)->getCur());
-		int calleeNum = (*it)->getCalleeNum();
 		(*it)->ifCheck = -1;
-		for (int i = 0; i < calleeNum; i++)
+		for (it_callee=callee.begin(); it_callee!=callee.end(); it_callee++)
 		{
 			for (it4 = Callgraph.begin(); it4 < Callgraph.end(); it4++)
-				if ((*it4)->getCur() == (*it)->getCallee(i))
+				if ((*it4)->getCur() == *it_callee)
 				{
 					getRing(Callgraph, it4 - Callgraph.begin(), ringVector);
 					break;
@@ -179,17 +172,31 @@ void getRing(std::vector<callgraph*>&Callgraph, int n, std::vector<FunctionDecl*
 void printCallGraph(std::vector<callgraph*> Callgraph)
 {
 	std::vector<callgraph*>::iterator it3;
+
+	std::vector<FunctionDecl*>::iterator it_call;
+	std::vector<FunctionDecl*> caller;
+	std::vector<FunctionDecl*> callee;
 	for (it3 = Callgraph.begin(); it3 != Callgraph.end(); it3++)
 	{
+		caller = (*it3)->getCaller();
+		callee = (*it3)->getCallee();
 		std::cout << (*it3)->getCur()->getQualifiedNameAsString() << "\n";
 		int paramNum = (*it3)->getCur()->getNumParams();
-		std::cout << "\tParamNum: " << paramNum << "\n";
-		if (paramNum > 0)
-			for (unsigned i = 0; i < (*it3)->getCur()->getNumParams(); i++)
-				std::cout << "\t\t" << (*it3)->getCur()->getParamDecl(i)->getQualifiedNameAsString() << "\n";
-
 		int varNum = (*it3)->getVarNum();
 		CTmap map = (*it3)->getCTmap();
+
+		std::cout << "\tParamNum: " << paramNum << "\n";
+		if (paramNum > 0)
+		{
+			for (unsigned i = 0; i < (*it3)->getCur()->getNumParams(); i++)
+			{
+				VarDecl* tt = map.get_VarDecl(i);
+				std::cout << "\t\t" << tt->getQualifiedNameAsString() << "    ";
+				map.getmap(tt)->output();
+				std::cout << "\n";
+			}
+		}
+
 		std::cout << "\tVarNum: " << varNum << "\n";
 		if (varNum > 0)
 		{
@@ -204,12 +211,12 @@ void printCallGraph(std::vector<callgraph*> Callgraph)
 
 		int j = (*it3)->getCallerNum();
 		std::cout << "\tcaller:" << j << "\n";
-		for (int i = 0; i < j; i++)
-			std::cout << "\t\t" << (*it3)->getCaller(i)->getQualifiedNameAsString() << "\n";
+		for (it_call = caller.begin(); it_call!=caller.end(); it_call++)
+			std::cout << "\t\t" << (*it_call)->getQualifiedNameAsString() << "\n";
 		j = (*it3)->getCalleeNum();
 		std::cout << "\tcallee:" << j << "\n";
-		for (int i = 0; i < j; i++)
-			std::cout << "\t\t" << (*it3)->getCallee(i)->getQualifiedNameAsString() << "\n";
+		for (it_call = callee.begin(); it_call != callee.end(); it_call++)
+			std::cout << "\t\t" << (*it_call)->getQualifiedNameAsString() << "\n";
 	}
 }
 
@@ -253,7 +260,7 @@ CXXRecordDecl* callgraph::getClass()
 //获取当前函数语句块信息指针
 std::unique_ptr<CFG>& callgraph::get_cfg()
 {
-	cfg=CFG::buildCFG(cur, cur->getBody(), &cur->getASTContext(), CFG::BuildOptions());
+	cfg = CFG::buildCFG(cur, cur->getBody(), &cur->getASTContext(), CFG::BuildOptions());
 	return cfg;
 }
 
