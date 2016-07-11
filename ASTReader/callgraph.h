@@ -10,8 +10,8 @@ class callgraph{
 public:
 	callgraph(FunctionDecl* f1);
 	callgraph(FunctionDecl* f1, FunctionDecl* f2);
-	FunctionDecl* getCaller(int i);		//调用cur
-	FunctionDecl* getCallee(int i);		//被cur调用
+	std::vector<FunctionDecl*>& getCaller();		//调用cur
+	std::vector<FunctionDecl*>& getCallee(int i);		//被cur调用
 	FunctionDecl* getCur();
 	int getCallerNum();
 	int getCalleeNum();
@@ -41,9 +41,9 @@ private:
 	//类方法所属的实例
 	VarDecl* root;
 	CXXRecordDecl* classDecl;
-	FunctionDecl* caller[10];
+	std::vector<FunctionDecl*> caller;
 	FunctionDecl* cur;
-	FunctionDecl* callee[10];
+	std::vector<FunctionDecl*> callee;
 	std::unique_ptr<CFG> cfg;
 	int callerNum, calleeNum;
 	CTmap* map;
