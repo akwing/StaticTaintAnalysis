@@ -148,6 +148,30 @@ public:
 		}
 	}
 
+	//复制p中的污染属性
+	void copy(Tainted_Attr *p)
+	{
+		if (type == TYPE_CLASS)
+		{
+			u.ptrClassDecl->~classTmap();
+			delete u.ptrClassDecl;
+		}
+		type = p->type;
+		if (type == TYPE_VARIABLE)
+		{
+			u.var.attr = p->u.var.attr;
+			u.var.relation = p->u.var.relation;
+		}
+		else if (type == TYPE_POINTER || type == TYPE_CLASSPOINTER)
+		{
+			u.ptrAttr = p->u.ptrAttr;
+		}
+		else if (type == TYPE_CLASS)
+		{
+			u.ptrClassDecl = new classTmap(p->u.ptrClassDecl);
+		}
+	}
+
 	//信息设置函数，如果当前污染属性的类型不为VARIABLE，不会进行修改，并警告
 	void var_attr_set(e_tattr a, unsigned r)
 	{
@@ -195,8 +219,7 @@ public:
 		//here to add
 	}
 
-	//信息设置函数，如果当前污染属性的类型不为POINTER，不会进行修改，并警告
-	//将当前污染属性指向pt指向的位置
+	//将当前污染属性指向pt指向的位置，如果当前污染属性的类型不为POINTER，不会进行修改，并警告
 	void setPointer(Tainted_Attr *pt)
 	{
 		if (type != TYPE_POINTER || type != TYPE_CLASSPOINTER)
@@ -215,6 +238,7 @@ public:
 		}
 	}
 
+	//设置污染属性的类型
 	void setType(eVarDeclType tp)
 	{
 		type = tp;
@@ -337,20 +361,20 @@ public:
 	//将当前map清空，并将b中的元素及污染属性整个拷贝到map中
 	void CopyMap(CTmap& b)
 	{
-		tmap.clear();
+		clear();
 		Tainted_Attr *t = NULL, *newattr;
 		VarDecl *pdec = NULL;
 		map<VarDecl *, Tainted_Attr *>::iterator it = b.tmap.begin(), it_end = b.tmap.end();
 
 		while (it != it_end)
 		{
-			pdec = (*it).first;
-			t = (*it).second;
+			pdec = it->first;
+			t = it->second;
 			//pdec==class here to add how to copy
 			
 			newattr = new Tainted_Attr;
 		
-			newattr->var_attr_set(t->getVariableAttr(), t->getVariableRelation());
+			newattr->copy(t);
 
 			tmap[pdec] = newattr;
 			it++;
@@ -518,11 +542,19 @@ public:
 	//清空map中的元素
 	void clear()
 	{
+		Tainted_Attr *t;
+		classTmap *ct;
 		map<VarDecl *, Tainted_Attr *>::iterator iter = tmap.begin(), iter_end = tmap.end();
 		while (iter != iter_end)
 		{
-			//==class here to add delete
+			t = iter->second;
+			if (t->getType() == TYPE_CLASS)
+			{
+				ct = t->getClassDecl();
+				ct->clearTmap();
+			}
 			delete iter->second;
+			iter->second = NULL;
 			iter++;
 		}
 		tmap.clear();
