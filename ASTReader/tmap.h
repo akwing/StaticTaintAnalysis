@@ -27,6 +27,7 @@ typedef enum{
 	TYPE_VARIABLE,	//变量
 	TYPE_CLASS,		//类
 	TYPE_POINTER,	//指针
+	TYPE_CLASSPOINTER,//指向类的指针
 	TYPE_UNKNOWN	//未知
 }eVarDeclType;
 
@@ -41,15 +42,15 @@ private:
 			//污染与哪些变量相关
 			unsigned relation;
 		}var;
-		Tainted_Attr *attrpt;
-		classTmap *classpt;
+		Tainted_Attr *ptrAttr;
+		classTmap *ptrClassDecl;
 	}u;
 	eVarDeclType type;
 public:
 
 	//默认构造函数，污染属性的类型对应为unknown
 	Tainted_Attr(){
-		u.classpt = NULL;
+		u.ptrClassDecl = NULL;
 		type = TYPE_UNKNOWN;
 	}
 	
@@ -62,21 +63,21 @@ public:
 			u.var.attr = UNTAINTED;
 			u.var.relation = 0;
 		}
-		else if (mytype == TYPE_POINTER)
+		else if (mytype == TYPE_POINTER || mytype == TYPE_CLASSPOINTER)
 		{
-			u.attrpt = NULL;
+			u.ptrAttr = NULL;
 		}
 		else if (mytype == TYPE_CLASS)
 		{
-			u.classpt = new classTmap(*ct);
+			u.ptrClassDecl = new classTmap(*ct);
 		}
 		else
 		{
-			u.classpt = NULL;
+			u.ptrClassDecl = NULL;
 			type = TYPE_UNKNOWN;
 		}
 	}
-	//拷贝构造函数
+/*	//拷贝构造函数
 	Tainted_Attr(Tainted_Attr& b)
 	{
 		type = b.type;
@@ -87,7 +88,7 @@ public:
 			u.var.relation = b.u.var.relation;
 			break;
 		case TYPE_CLASS:
-			u.classpt = b.u.classpt;
+			u.classpt = b.u.classpt;	//
 			break;
 		case TYPE_POINTER:
 			u.attrpt = b.u.attrpt;
@@ -95,18 +96,18 @@ public:
 		case TYPE_UNKNOWN:
 			break;
 		}
-	}
+	}*/
 
 	//获取所存储的污染属性的类型
-	eVarDeclType getAttrType()
+	eVarDeclType getType()
 	{
 		return type;
 	}
 
 	//获取变量类型的污染属性的污染情况
-	e_tattr *getVariableAttr()
+	e_tattr getVariableAttr()
 	{
-		return &u.var.attr;
+		return u.var.attr;
 	}
 
 	//获取变量类型的污染属性的关联
@@ -116,15 +117,15 @@ public:
 	}
 
 	//获取类类型的污染属性的classTmap指针
-	classTmap *getClassPt()
+	classTmap *getClassDecl()
 	{
-		return u.classpt;
+		return u.ptrClassDecl;
 	}
 
 	//获得指针类型的污染属性所指向的污染属性
-	Tainted_Attr *getPointerPt()
+	Tainted_Attr *getPointerAttr()
 	{
-		return u.attrpt;
+		return u.ptrAttr;
 	}
 
 	//信息输出函数 调试用
@@ -148,7 +149,7 @@ public:
 	}
 
 	//信息设置函数，如果当前污染属性的类型不为VARIABLE，不会进行修改，并警告
-	void attr_set(e_tattr a, unsigned r)
+	void var_attr_set(e_tattr a, unsigned r)
 	{
 		if (type != TYPE_VARIABLE)
 		{
@@ -163,11 +164,32 @@ public:
 	}
 
 	//信息设置函数，如果当前的污染属性的类型不为CLASS，不会进行修改，并警告
-	void attr_set(e_tattr a, unsigned r, Expr *pExp)
+	void class_attr_set(e_tattr a, unsigned r, Expr *ptrExp)
 	{
-		if (type != TYPE_CLASS || type != TYPE_POINTER)
+		if (type != TYPE_CLASS)
 		{
-			cout << "warning: type != TYPE_CLASS or TYPE_POINTER" << endl;
+			cout << "warning: type != TYPE_CLASS" << endl;
+			return;
+		}
+		//here to add
+	}
+
+	//信息设置函数，如果当前的污染属性的类型不为POINTER，不会进行修改，并警告
+	void pointer_attr_set(e_tattr a, unsigned r)
+	{
+		if (type != TYPE_CLASS)
+		{
+			cout << "warning: type != TYPE_POINTER" << endl;
+			return;
+		}
+		u.ptrAttr->var_attr_set(a, r);
+	}
+
+	void classpointer_attr_set(e_tattr a, unsigned r, Expr *ptrExp)
+	{
+		if (type != TYPE_CLASSPOINTER || ptrExp == NULL)
+		{
+			cout << "Warning: classpointer" << endl;
 			return;
 		}
 		//here to add
@@ -175,25 +197,52 @@ public:
 
 	//信息设置函数，如果当前污染属性的类型不为POINTER，不会进行修改，并警告
 	//将当前污染属性指向pt指向的位置
-	void attr_set(Tainted_Attr *pt)
+	void setPointer(Tainted_Attr *pt)
 	{
-		if (type != TYPE_POINTER)
+		if (type != TYPE_POINTER || type != TYPE_CLASSPOINTER)
 		{
-			cout << "warning: type != TYPE_POINTER" << endl;
+			cout << "Warning: type != POINTER" << endl;
 			return;
 		}
 		while (1)
 		{
 			if (pt->type == TYPE_VARIABLE || pt->type == TYPE_CLASS)
 			{
-				
+				u.ptrAttr = pt;
 				return;
 			}
-			pt = pt->u.attrpt;
+			pt = pt->u.ptrAttr;
 		}
 	}
 
-	//将两个污染属性取并
+	void setType(eVarDeclType tp)
+	{
+		type = tp;
+		if (tp == TYPE_VARIABLE)
+		{
+			u.var.attr = UNTAINTED;
+			u.var.relation = 0;
+		}
+		else if (tp == TYPE_POINTER)
+		{
+			u.ptrAttr = NULL;
+		}
+		else if (tp == TYPE_CLASS)
+		{
+			u.ptrClassDecl = NULL;
+		}
+		else if (tp == TYPE_CLASSPOINTER)
+		{
+			u.ptrAttr = NULL;
+		}
+		else
+		{
+			u.ptrClassDecl = NULL;
+			type = TYPE_UNKNOWN;
+		}
+	}
+
+	//将两个污染属性取并，有待修改
 	void AndAttr(Tainted_Attr &b)
 	{
 		if (type != b.type)
@@ -227,7 +276,8 @@ public:
 //封装了C++ map模板的污染表类 
 class CTmap
 {
-	friend class CFGInOut;
+private:
+	map<VarDecl *, Tainted_Attr *> tmap;
 public:
 	//构造函数
 	CTmap(){}
@@ -247,7 +297,7 @@ public:
 
 			newattr = new Tainted_Attr;
 
-			newattr->attr_set(t->getAttr, t->getRelation);
+			newattr->var_attr_set(t->getVariableAttr(), t->getVariableRelation());
 
 			tmap[pdec] = newattr;
 			it++;
@@ -287,7 +337,7 @@ public:
 	//将当前map清空，并将b中的元素及污染属性整个拷贝到map中
 	void CopyMap(CTmap& b)
 	{
-	/*	tmap.clear();
+		tmap.clear();
 		Tainted_Attr *t = NULL, *newattr;
 		VarDecl *pdec = NULL;
 		map<VarDecl *, Tainted_Attr *>::iterator it = b.tmap.begin(), it_end = b.tmap.end();
@@ -300,14 +350,14 @@ public:
 			
 			newattr = new Tainted_Attr;
 		
-			newattr->attr_set(t->getVariableAttr(), t->getVariableRelation());
+			newattr->var_attr_set(t->getVariableAttr(), t->getVariableRelation());
 
 			tmap[pdec] = newattr;
 			it++;
-		}*/
+		}
 	}
 
-	//若p不在表中，插入一个变量定义节点，并创建一个污染属性变量
+	//若p不在表中，插入一个以p为索引的空条目
 	void insert(VarDecl *p)
 	{
 		Tainted_Attr *t = new Tainted_Attr();
@@ -333,14 +383,16 @@ public:
 	}
 
 	//取得变量定义节点p对应的污染属性
-	Tainted_Attr *getmap(VarDecl *p)
+	Tainted_Attr *getAttr(VarDecl *p)
 	{
 		int count;
 		count = tmap.count(p);
 		if (count == 0)
 			return NULL;
 		else
+		{
 			return tmap[p];
+		}
 	}
 
 	//获取类的变量的自身的map
@@ -354,25 +406,100 @@ public:
 		}
 		else
 		{
-			return tmap[p]->getClassPt();
+			if (tmap[p]->getType() != TYPE_CLASS)
+			{
+				return NULL;
+			}
+			return tmap[p]->getClassDecl();
 		}
 	}
 
-	//对某个变量的污染属性值进行设置
-	void setAttr(VarDecl *p, e_tattr a, unsigned r)
+	//设置某个变量的属性（变量、指针、类）
+	void setType(VarDecl *p, eVarDeclType tp)
 	{
 		int count;
 		count = tmap.count(p);
 		if (count == 0)
 		{
-			cout << "No such variable in the function" << endl;
+			cout << "Error: No such variable in the function" << endl;
 			return;
 		}
 		else
 		{
-			tmap[p]->attr_set(a, r);
+			tmap[p]->setType(tp);
 		}
 	}
+
+	//设置p的污染属性，p为普通变量类型
+	void var_attr_set(VarDecl *p, e_tattr e, unsigned r)
+	{
+		int count;
+		Tainted_Attr *tp;
+		count = tmap.count(p);
+		if (count == 0)
+		{
+			cout << "Error: No such variable in the function" << endl;
+			return;
+		}
+		else
+		{
+			tp = tmap[p];
+			if (tp->getType() != TYPE_VARIABLE)
+			{
+				cout << "Warning: type != TYPE_VARIABLE" << endl;
+				return;
+			}
+			tp->var_attr_set(e, r);
+		}
+	}
+
+	//设置pt指向的变量
+	void ptr_set(VarDecl *p, Tainted_Attr *tp)
+	{
+		int count;
+		Tainted_Attr *tp;
+		count = tmap.count(p);
+		if (count == 0)
+		{
+			cout << "Error: No such variable in the function" << endl;
+			return;
+		}
+		else
+		{
+			if (tmap[p]->getType() != TYPE_POINTER || tmap[p]->getType() != TYPE_CLASSPOINTER)
+			{
+				cout << "Warning: type != POINTER" << endl;
+				return;
+			}
+			tmap[p]->setPointer(tp);
+		}
+	}
+
+	//设置pt指向的变量的污染属性
+	void ptr_attr_set(VarDecl *p, e_tattr e, unsigned r)
+	{
+		int count;
+		Tainted_Attr *tp;
+		count = tmap.count(p);
+		if (count == 0)
+		{
+			cout << "Error: No such variable in the function" << endl;
+			return;
+		}
+		else
+		{
+			tp = tmap[p];
+			if (tp->getType() != TYPE_POINTER)
+			{
+				cout << "Warning: type != TYPE_POINTER" << endl;
+				return;
+			}
+			tp->pointer_attr_set(e, r);
+		}
+	}
+
+	void classptr_attr_set()
+	{}
 
 	//将两个map中的污染属性合并
 	void AndMap(CTmap &b)
@@ -382,8 +509,8 @@ public:
 		while (iter != iter_end)
 		{
 			p = (*iter).first;
-			if (b.getmap(p) != NULL)
-				(*iter).second->AndAttr(*b.getmap(p));
+			if (b.getAttr(p) != NULL)
+				(*iter).second->AndAttr(*b.getAttr(p));
 			iter++;
 		}
 	}
@@ -414,8 +541,6 @@ public:
 		}
 		return NULL;
 	}
-private:
-	map<VarDecl *, Tainted_Attr *> tmap;
 };
 
 #endif
