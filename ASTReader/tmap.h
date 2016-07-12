@@ -168,7 +168,7 @@ public:
 		}
 		else if (type == TYPE_CLASS)
 		{
-			u.ptrClassDecl = new classTmap(p->u.ptrClassDecl);
+			u.ptrClassDecl = new classTmap(*p->u.ptrClassDecl);
 		}
 	}
 
