@@ -3,7 +3,7 @@
 
 #include "tmap.h"
 #include "AST.h"
-#incldue "callgraph.h"
+#include "callgraph.h"
 #include "clang\Analysis\CFG.h"
 
 using namespace std;
@@ -37,10 +37,6 @@ public:
 	{
 		IN.CopyMap(tm);
 		OUT.CopyMap(tm);
-		cout << "in" << endl;
-		IN.output();
-		cout << "out" << endl;
-		OUT.output();
 	}
 };
 
