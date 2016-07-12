@@ -11,7 +11,7 @@ public:
 	callgraph(FunctionDecl* f1);
 	callgraph(FunctionDecl* f1, FunctionDecl* f2);
 	std::vector<FunctionDecl*>& getCaller();		//调用cur
-	std::vector<FunctionDecl*>& getCallee(int i);		//被cur调用
+	std::vector<FunctionDecl*>& getCallee();		//被cur调用
 	FunctionDecl* getCur();
 	int getCallerNum();
 	int getCalleeNum();
