@@ -198,6 +198,11 @@ public:
 		//here to add
 	}
 
+	void setclass(classTmap *ct)
+	{
+		u.ptrClassDecl = ct;
+	}
+
 	//信息设置函数，如果当前的污染属性的类型不为POINTER，不会进行修改，并警告
 	void pointer_attr_set(e_tattr a, unsigned r)
 	{
@@ -522,7 +527,32 @@ public:
 		}
 	}
 
-	void classptr_attr_set()
+	void classmember_attr_set(VarDecl *p,classTmap *ct)
+	{
+		int count;
+		Tainted_Attr *tp;
+		count = tmap.count(p);
+		if (count == 0)
+		{
+			cout << "Error: No such variable in the function" << endl;
+			return;
+		}
+		else
+		{
+			tp = tmap[p];
+			if (tp->getType() != TYPE_CLASS)
+			{
+				cout << "Warning: type != TYPE_POINTER" << endl;
+				return;
+			}
+			else
+			{
+				tp->setclass(ct);
+			}
+		}
+	}
+
+	void classmember_attr_set(VarDecl *p, e_tattr e, unsigned r, Expr *ptrExpr)
 	{}
 
 	//将两个map中的污染属性合并
