@@ -5,7 +5,7 @@
 void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 {
 	clang::CFGBlock* CFGentry = &(cfg.getEntry()), *CFGexit = &(cfg.getExit());
-	clang::CFGBlock::succ_iterator succ_it, succ_end;
+	clang::CFGBlock::pred_iterator pred_it, pred_end;
 
 	CTmap *outm = NULL, *inm = NULL;
 	map<clang::CFGBlock *, CFGInOut> block_io_map;
@@ -25,28 +25,28 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 		{
 			VarDecl *a, *b;
 			b = it1->second.GetIN()->get_VarDecl(1);
-			it1->second.GetIN()->setAttr(b, TAINTED, 0);
-			it1->second.GetOUT()->setAttr(b, TAINTED, 0);
+			it1->second.GetIN()->var_attr_set(b, TAINTED, 0);
+			it1->second.GetOUT()->var_attr_set(b, TAINTED, 0);
 			if (i <= 6)
 			{
 				a = it1->second.GetIN()->get_VarDecl(0);
-				it1->second.GetOUT()->setAttr(a, TAINTED, 0);
-				it1->second.GetIN()->setAttr(a, TAINTED, 0);
+				it1->second.GetOUT()->var_attr_set(a, TAINTED, 0);
+				it1->second.GetIN()->var_attr_set(a, TAINTED, 0);
 			}
 			if (i == 2)
 			{
 				a = it1->second.GetIN()->get_VarDecl(0);
-				it1->second.GetIN()->setAttr(a, TAINTED, 0);
-				it1->second.GetOUT()->setAttr(a, TAINTED, 0);
+				it1->second.GetIN()->var_attr_set(a, TAINTED, 0);
+				it1->second.GetOUT()->var_attr_set(a, TAINTED, 0);
 			}
 		}
 		i = 0;
-	/*	for (map<clang::CFGBlock *, CFGInOut>::reverse_iterator r_iter = block_io_map.rbegin(), r_end = block_io_map.rend(); r_iter != r_end; r_iter++)
+		for (map<clang::CFGBlock *, CFGInOut>::reverse_iterator r_iter = block_io_map.rbegin(), r_end = block_io_map.rend(); r_iter != r_end; r_iter++)
 		{
 			i++;
 			//block-in = 前驱的并
 			//即对block的前驱的out求并，作为该block的in
-			succ_it = r_iter->first->succ_begin(), succ_end = r_iter->first->succ_end();
+			pred_it = r_iter->first->succ_begin(), pred_end = r_iter->first->succ_end();
 			clang::CFGBlock* temp = NULL;
 
 			//清空原来的in，并用前驱的out的并来生成新的in
@@ -57,12 +57,12 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 				inm->CopyMap(tm);
 			}
 
-			while (succ_it != succ_end)
+			while (pred_it != pred_end)
 			{
-				temp = succ_it->getReachableBlock();
+				temp = pred_it->getReachableBlock();
 				outm = block_io_map[temp].GetOUT();
 				inm->AndMap(*outm);
-				succ_it++;
+				pred_it++;
 			}
 
 			outm = r_iter->second.GetOUT();
@@ -70,8 +70,7 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 
 			//checkblock, modify changed
 			
-		}*/
-		cout << "i = " << i << endl;
+		}
 
 		//迭代至所有block的OUT都不发生改变，跳出循环
 		if (changed == false)
