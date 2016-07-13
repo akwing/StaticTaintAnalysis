@@ -42,7 +42,9 @@ private:
 			//污染与哪些变量相关
 			unsigned relation;
 		}var;
+		//指向该指针指向的变量的污染属性
 		Tainted_Attr *ptrAttr;
+		//指向该类的实例的map
 		classTmap *ptrClassDecl;
 	}u;
 	eVarDeclType type;
@@ -77,7 +79,7 @@ public:
 			type = TYPE_UNKNOWN;
 		}
 	}
-/*	//拷贝构造函数
+	//拷贝构造函数
 	Tainted_Attr(Tainted_Attr& b)
 	{
 		type = b.type;
@@ -88,15 +90,15 @@ public:
 			u.var.relation = b.u.var.relation;
 			break;
 		case TYPE_CLASS:
-			u.classpt = b.u.classpt;	//
+			u.ptrClassDecl = b.u.ptrClassDecl;	//
 			break;
 		case TYPE_POINTER:
-			u.attrpt = b.u.attrpt;
+			u.ptrAttr = b.u.ptrAttr;
 			break;
 		case TYPE_UNKNOWN:
 			break;
 		}
-	}*/
+	}
 
 	//获取所存储的污染属性的类型
 	eVarDeclType getType()
@@ -336,18 +338,21 @@ public:
 	~CTmap()
 	{
 		Tainted_Attr *t;
+		classTmap *ct;
 		map<VarDecl *, Tainted_Attr *>::iterator iter = tmap.begin(), iter_end = tmap.end();
-
 		while (iter != iter_end)
 		{
-			//pdec==class to add how to delete
-
-
-			t = (*iter).second;
-			delete t;	//释放临时变量的空间
+			t = iter->second;
+			if (t->getType() == TYPE_CLASS)
+			{
+				ct = t->getClassDecl();
+				ct->clearTmap();
+			}
+			delete iter->second;
+			iter->second = NULL;
 			iter++;
 		}
-		tmap.clear();	//清空所有元素
+		tmap.clear();
 	}
 
 	//map中的元素及对应的污染情况输出
@@ -486,7 +491,6 @@ public:
 	void ptr_set(VarDecl *p, Tainted_Attr *tp)
 	{
 		int count;
-		Tainted_Attr *tp;
 		count = tmap.count(p);
 		if (count == 0)
 		{
