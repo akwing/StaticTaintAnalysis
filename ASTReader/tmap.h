@@ -65,7 +65,11 @@ public:
 	}
 	
 	//追加了类型参数的构造函数，如果是类请传入该类的classTmap
-	Tainted_Attr(eVarDeclType mytype, classTmap *ct)
+	Tainted_Attr(eVarDeclType mytype
+#ifdef USECLASS
+		, classTmap *ct
+#endif
+		)
 	{
 		type = mytype;
 		if (mytype == TYPE_VARIABLE)
@@ -381,7 +385,9 @@ public:
 	~CTmap()
 	{
 		Tainted_Attr *t;
+#ifdef USECLASS
 		classTmap *ct;
+#endif
 		map<VarDecl *, Tainted_Attr *>::iterator iter = tmap.begin(), iter_end = tmap.end();
 		while (iter != iter_end)
 		{
@@ -630,7 +636,9 @@ public:
 	void clear()
 	{
 		Tainted_Attr *t;
+#ifdef USECLASS
 		classTmap *ct;
+#endif
 		map<VarDecl *, Tainted_Attr *>::iterator iter = tmap.begin(), iter_end = tmap.end();
 		while (iter != iter_end)
 		{
