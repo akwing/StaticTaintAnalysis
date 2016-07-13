@@ -9,7 +9,10 @@
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Basic/FileSystemOptions.h"
 #include "clang/AST/RecursiveASTVisitor.h"
+
+#ifdef USECLASS
 #include "classTmap.h"
+#endif
 
 using namespace std;
 using namespace clang;
@@ -25,9 +28,11 @@ typedef enum{
 //变量的类型，供tmap使用
 typedef enum{
 	TYPE_VARIABLE,	//变量
+#ifdef USECLASS
 	TYPE_CLASS,		//类
-	TYPE_POINTER,	//指针
 	TYPE_CLASSPOINTER,//指向类的指针
+#endif
+	TYPE_POINTER,	//指针
 	TYPE_UNKNOWN	//未知
 }eVarDeclType;
 
@@ -42,15 +47,20 @@ private:
 			//污染与哪些变量相关
 			unsigned relation;
 		}var;
+		//指向该指针指向的变量的污染属性
 		Tainted_Attr *ptrAttr;
+
+#ifdef USECLASS
+		//指向该类的实例的map
 		classTmap *ptrClassDecl;
+#endif
 	}u;
 	eVarDeclType type;
 public:
 
 	//默认构造函数，污染属性的类型对应为unknown
 	Tainted_Attr(){
-		u.ptrClassDecl = NULL;
+		u.ptrAttr = NULL;
 		type = TYPE_UNKNOWN;
 	}
 	
@@ -63,21 +73,27 @@ public:
 			u.var.attr = UNTAINTED;
 			u.var.relation = 0;
 		}
-		else if (mytype == TYPE_POINTER || mytype == TYPE_CLASSPOINTER)
+		else if (mytype == TYPE_POINTER 
+#ifdef USECLASS
+			|| mytype == TYPE_CLASSPOINTER
+#endif
+			)
 		{
 			u.ptrAttr = NULL;
 		}
+#ifdef USECLASS
 		else if (mytype == TYPE_CLASS)
 		{
 			u.ptrClassDecl = new classTmap(*ct);
 		}
+#endif
 		else
 		{
-			u.ptrClassDecl = NULL;
+			u.ptrAttr = NULL;
 			type = TYPE_UNKNOWN;
 		}
 	}
-/*	//拷贝构造函数
+	//拷贝构造函数
 	Tainted_Attr(Tainted_Attr& b)
 	{
 		type = b.type;
@@ -87,16 +103,18 @@ public:
 			u.var.attr = b.u.var.attr;
 			u.var.relation = b.u.var.relation;
 			break;
+#ifdef USECLASS
 		case TYPE_CLASS:
-			u.classpt = b.u.classpt;	//
+			u.ptrClassDecl = b.u.ptrClassDecl;
 			break;
+#endif
 		case TYPE_POINTER:
-			u.attrpt = b.u.attrpt;
+			u.ptrAttr = b.u.ptrAttr;
 			break;
 		case TYPE_UNKNOWN:
 			break;
 		}
-	}*/
+	}
 
 	//获取所存储的污染属性的类型
 	eVarDeclType getType()
@@ -116,11 +134,13 @@ public:
 		return u.var.relation;
 	}
 
+#ifdef USECLASS
 	//获取类类型的污染属性的classTmap指针
 	classTmap *getClassDecl()
 	{
 		return u.ptrClassDecl;
 	}
+#endif
 
 	//获得指针类型的污染属性所指向的污染属性
 	Tainted_Attr *getPointerAttr()
@@ -151,25 +171,35 @@ public:
 	//复制p中的污染属性
 	void copy(Tainted_Attr *p)
 	{
+#ifdef USECLASS
 		if (type == TYPE_CLASS)
 		{
 			u.ptrClassDecl->~classTmap();
 			delete u.ptrClassDecl;
 		}
+#endif
+
 		type = p->type;
 		if (type == TYPE_VARIABLE)
 		{
 			u.var.attr = p->u.var.attr;
 			u.var.relation = p->u.var.relation;
 		}
-		else if (type == TYPE_POINTER || type == TYPE_CLASSPOINTER)
+		else if (type == TYPE_POINTER 
+#ifdef USECLASS
+			|| type == TYPE_CLASSPOINTER
+#endif
+			)
 		{
 			u.ptrAttr = p->u.ptrAttr;
 		}
+
+#ifdef USECLASS
 		else if (type == TYPE_CLASS)
 		{
 			u.ptrClassDecl = new classTmap(*p->u.ptrClassDecl);
 		}
+#endif
 	}
 
 	//信息设置函数，如果当前污染属性的类型不为VARIABLE，不会进行修改，并警告
@@ -187,6 +217,7 @@ public:
 		}
 	}
 
+#ifdef USECLASS
 	//信息设置函数，如果当前的污染属性的类型不为CLASS，不会进行修改，并警告
 	void class_attr_set(e_tattr a, unsigned r, Expr *ptrExp)
 	{
@@ -202,11 +233,13 @@ public:
 	{
 		u.ptrClassDecl = ct;
 	}
+#endif
 
 	//信息设置函数，如果当前的污染属性的类型不为POINTER，不会进行修改，并警告
 	void pointer_attr_set(e_tattr a, unsigned r)
 	{
-		if (type != TYPE_CLASS)
+
+		if (type != TYPE_POINTER)
 		{
 			cout << "warning: type != TYPE_POINTER" << endl;
 			return;
@@ -214,6 +247,7 @@ public:
 		u.ptrAttr->var_attr_set(a, r);
 	}
 
+#ifdef USECLASS
 	void classpointer_attr_set(e_tattr a, unsigned r, Expr *ptrExp)
 	{
 		if (type != TYPE_CLASSPOINTER || ptrExp == NULL)
@@ -223,18 +257,27 @@ public:
 		}
 		//here to add
 	}
+#endif
 
 	//将当前污染属性指向pt指向的位置，如果当前污染属性的类型不为POINTER，不会进行修改，并警告
 	void setPointer(Tainted_Attr *pt)
 	{
-		if (type != TYPE_POINTER || type != TYPE_CLASSPOINTER)
+		if (type != TYPE_POINTER
+#ifdef USECLASS
+			|| type != TYPE_CLASSPOINTER
+#endif
+			)
 		{
 			cout << "Warning: type != POINTER" << endl;
 			return;
 		}
 		while (1)
 		{
-			if (pt->type == TYPE_VARIABLE || pt->type == TYPE_CLASS)
+			if (pt->type == TYPE_VARIABLE
+#ifdef USECLASS
+				|| pt->type == TYPE_CLASS
+#endif
+				)
 			{
 				u.ptrAttr = pt;
 				return;
@@ -256,6 +299,7 @@ public:
 		{
 			u.ptrAttr = NULL;
 		}
+#ifdef USECLASS
 		else if (tp == TYPE_CLASS)
 		{
 			u.ptrClassDecl = NULL;
@@ -264,9 +308,10 @@ public:
 		{
 			u.ptrAttr = NULL;
 		}
+#endif
 		else
 		{
-			u.ptrClassDecl = NULL;
+			u.ptrAttr = NULL;
 			type = TYPE_UNKNOWN;
 		}
 	}
@@ -336,18 +381,23 @@ public:
 	~CTmap()
 	{
 		Tainted_Attr *t;
+		classTmap *ct;
 		map<VarDecl *, Tainted_Attr *>::iterator iter = tmap.begin(), iter_end = tmap.end();
-
 		while (iter != iter_end)
 		{
-			//pdec==class to add how to delete
-
-
-			t = (*iter).second;
-			delete t;	//释放临时变量的空间
+			t = iter->second;
+#ifdef USECLASS
+			if (t->getType() == TYPE_CLASS)
+			{
+				ct = t->getClassDecl();
+				ct->clearTmap();
+			}
+#endif
+			delete iter->second;
+			iter->second = NULL;
 			iter++;
 		}
-		tmap.clear();	//清空所有元素
+		tmap.clear();
 	}
 
 	//map中的元素及对应的污染情况输出
@@ -424,6 +474,7 @@ public:
 		}
 	}
 
+#ifdef USECLASS
 	//获取类的变量的自身的map
 	classTmap *getClassTmap(VarDecl *p)
 	{
@@ -442,6 +493,7 @@ public:
 			return tmap[p]->getClassDecl();
 		}
 	}
+#endif
 
 	//设置某个变量的属性（变量、指针、类）
 	void setType(VarDecl *p, eVarDeclType tp)
@@ -486,7 +538,6 @@ public:
 	void ptr_set(VarDecl *p, Tainted_Attr *tp)
 	{
 		int count;
-		Tainted_Attr *tp;
 		count = tmap.count(p);
 		if (count == 0)
 		{
@@ -495,7 +546,11 @@ public:
 		}
 		else
 		{
-			if (tmap[p]->getType() != TYPE_POINTER || tmap[p]->getType() != TYPE_CLASSPOINTER)
+			if (tmap[p]->getType() != TYPE_POINTER
+#ifdef USECLASS
+				|| tmap[p]->getType() != TYPE_CLASSPOINTER
+#endif
+				)
 			{
 				cout << "Warning: type != POINTER" << endl;
 				return;
@@ -527,6 +582,7 @@ public:
 		}
 	}
 
+#ifdef USECLASS
 	void classmember_attr_set(VarDecl *p,classTmap *ct)
 	{
 		int count;
@@ -554,6 +610,7 @@ public:
 
 	void classmember_attr_set(VarDecl *p, e_tattr e, unsigned r, Expr *ptrExpr)
 	{}
+#endif
 
 	//将两个map中的污染属性合并
 	void AndMap(CTmap &b)
@@ -578,11 +635,13 @@ public:
 		while (iter != iter_end)
 		{
 			t = iter->second;
+#ifdef USECLASS
 			if (t->getType() == TYPE_CLASS)
 			{
 				ct = t->getClassDecl();
 				ct->clearTmap();
 			}
+#endif
 			delete iter->second;
 			iter->second = NULL;
 			iter++;
