@@ -95,7 +95,9 @@ public:
 	void pointer_attr_set(e_tattr a, const VarDecl *r);
 	void setPointer(Tainted_Attr *pt);
 	void setType(eVarDeclType tp);
-	void AndAttr(Tainted_Attr &a, Tainted_Attr &b);
+	void unionAttr(Tainted_Attr &a, Tainted_Attr &b);
+	void unionAttr(Tainted_Attr &a);
+	bool compareAttr(Tainted_Attr &ta);
 };
 
 //封装了C++ map模板的污染表类 
@@ -125,9 +127,10 @@ public:
 	void classmember_attr_set(const VarDecl *p, classTmap *ct);
 	void classmember_attr_set(const VarDecl *p, e_tattr e, const VarDecl *r, Expr *ptrExpr);
 #endif
-	void AndMap(CTmap &b);
+	void unionMap(CTmap &b);
 	void clear();
 	const VarDecl *get_VarDecl(int n);
+	bool compareMap(CTmap &tm);
 };
 
 #endif
