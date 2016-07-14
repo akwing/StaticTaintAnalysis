@@ -50,7 +50,7 @@ Tainted_Attr::Tainted_Attr(Tainted_Attr& b)
 		u.var.attr = b.u.var.attr;
 		while (it != it_end)
 		{
-			relation.insert(relation.begin(), *it);
+			relation.insert(relation.end(), *it);
 			it++;
 		}
 		break;
@@ -132,7 +132,6 @@ void Tainted_Attr::output()
 			cout << vd->getNameAsString() << " ";
 			it++;
 		}
-		cout << endl;
 	}
 	//here to add output
 	else
@@ -161,7 +160,7 @@ void Tainted_Attr::copy(Tainted_Attr *p)
 		{
 			while(it != it_end)
 			{
-				relation.insert(relation.begin(), *it);
+				relation.insert(relation.end(), *it);
 				it++;
 			}
 		}
@@ -195,7 +194,7 @@ void Tainted_Attr::var_attr_set(e_tattr a, const VarDecl *vd)
 	if (type == TYPE_VARIABLE)
 	{
 		u.var.attr = a;
-		relation.insert(relation.begin(), vd);
+		relation.insert(relation.end(), vd);
 	}
 }
 
@@ -210,7 +209,7 @@ void Tainted_Attr::var_attr_set(e_tattr a, set<const VarDecl *> r)
 	set<const VarDecl *>::iterator it = r.begin(), it_end = r.end();
 	while (it != it_end)
 	{
-		relation.insert(relation.begin(), *it);
+		relation.insert(relation.end(), *it);
 		it++;
 	}
 
@@ -323,14 +322,14 @@ void Tainted_Attr::setType(eVarDeclType tp)
 	}
 }
 
-//将两个污染属性取并，有待修改
-void Tainted_Attr::AndAttr(Tainted_Attr &a, Tainted_Attr &b)
+//将两个污染属性取并，存到当前变量中
+void Tainted_Attr::unionAttr(Tainted_Attr &a, Tainted_Attr &b)
 {
 	set<const VarDecl*>::iterator it, it_end;
 	relation.clear();
 	if (a.type != b.type)
 	{
-		cout << "Error in AndAttr()" << endl;
+		cout << "Error in unionAttr()" << endl;
 		return;
 	}
 	type = a.type;
@@ -366,12 +365,20 @@ void Tainted_Attr::AndAttr(Tainted_Attr &a, Tainted_Attr &b)
 			it_end = b.relation.end();
 			while (it != it_end)
 			{
-				relation.insert(relation.begin(), *it);
+				relation.insert(relation.end(), *it);
 				it++;
 			}
 		}
 		return;
 	}
+}
+
+//当前变量与其他变量取并，存到当前变量中
+void Tainted_Attr::unionAttr(Tainted_Attr &a)
+{
+	Tainted_Attr b;
+	b.copy(this);
+	unionAttr(a, b);
 }
 
 //构造函数
@@ -649,15 +656,15 @@ void CTmap::classmember_attr_set(VarDecl *p, e_tattr e, unsigned r, Expr *ptrExp
 #endif
 
 //将两个map中的污染属性合并
-void CTmap::AndMap(CTmap &b)
+void CTmap::unionMap(CTmap &b)
 {
 	const VarDecl *p;
 	map<const VarDecl *, Tainted_Attr *>::iterator iter = tmap.begin(), iter_end = tmap.end();
 	while (iter != iter_end)
 	{
 		p = (*iter).first;
-//		if (b.getAttr(p) != NULL)
-	//		(*iter).second->AndAttr(*b.getAttr(p));
+		if (b.getAttr(p) != NULL)
+			(*iter).second->unionAttr(*b.getAttr(p));
 		iter++;
 	}
 }
@@ -699,4 +706,58 @@ const VarDecl *CTmap::get_VarDecl(int n)
 		i++;
 	}
 	return NULL;
+}
+
+//比较两个属性是否相同，自用
+bool Tainted_Attr::compareAttr(Tainted_Attr &ta)
+{
+	if (type != ta.type)
+		return false;
+	if (type == TYPE_VARIABLE)
+	{
+		if (u.var.attr != ta.u.var.attr)
+			return false;
+		if (u.var.attr == RELATED)
+		{
+			set<const VarDecl *>::iterator it = relation.begin(), it_end = relation.end();
+			while (it != it_end)
+			{
+				if (ta.relation.find(*it) == ta.relation.end())
+					return false;
+				it++;
+			}
+			it = ta.relation.begin();
+			it_end = ta.relation.end();
+			while (it != it_end)
+			{
+				if (relation.find(*it) == relation.end())
+					return false;
+				it++;
+			}
+		}
+	}
+	else
+	{
+		cout << "must Add something" << endl;
+	}
+	return true;
+}
+
+//比较两个map是否相同，相同则返回true，自用
+bool CTmap::compareMap(CTmap &tm)
+{
+	const VarDecl *vd;
+	Tainted_Attr *ta;
+	map<const VarDecl*, Tainted_Attr *>::iterator it = tmap.begin(), it_end = tmap.end();
+	while (it != it_end)
+	{
+		ta = tm.getAttr(it->first);
+		if (ta != NULL)
+		{
+			if (it->second->compareAttr(*ta) != true)
+				return false;
+		}
+		it++;
+	}
+	return true;
 }
