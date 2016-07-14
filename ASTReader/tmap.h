@@ -57,7 +57,7 @@ private:
 #endif
 	}u;
 	eVarDeclType type;
-	set<VarDecl *> relation;
+	set<const VarDecl *> relation;
 public:
 	Tainted_Attr();
 	Tainted_Attr(eVarDeclType mytype
@@ -72,7 +72,7 @@ public:
 
 	eVarDeclType getType();
 	e_tattr getVariableAttr();
-	set<VarDecl *> *getVariableRelation();
+	set<const VarDecl *> *getVariableRelation();
 #ifdef USECLASS
 	classTmap *getClassDecl();
 #endif
@@ -85,14 +85,14 @@ public:
 
 	/*属性设置相关的函数*/
 
-	void var_attr_set(e_tattr a, VarDecl *r);
-	void var_attr_set(e_tattr a, set<VarDecl *> r);
+	void var_attr_set(e_tattr a, const VarDecl *r);
+	void var_attr_set(e_tattr a, set<const VarDecl *> r);
 #ifdef USECLASS
-	void class_attr_set(e_tattr a, VarDecl *r, Expr *ptrExp);
+	void class_attr_set(e_tattr a, const VarDecl *r, Expr *ptrExp);
 	void classmember_set(classTmap *ct);
-	void classpointer_attr_set(e_tattr a, VarDecl *r, Expr *ptrExp);
+	void classpointer_attr_set(e_tattr a, const VarDecl *r, Expr *ptrExp);
 #endif
-	void pointer_attr_set(e_tattr a, VarDecl *r);
+	void pointer_attr_set(e_tattr a, const VarDecl *r);
 	void setPointer(Tainted_Attr *pt);
 	void setType(eVarDeclType tp);
 	void AndAttr(Tainted_Attr &a, Tainted_Attr &b);
@@ -102,32 +102,32 @@ public:
 class CTmap
 {
 private:
-	map<VarDecl *, Tainted_Attr *> tmap;
+	map<const VarDecl *, Tainted_Attr *> tmap;
 public:
 	CTmap();
 	CTmap(CTmap& b);
 	~CTmap();
 	void output();
 	void CopyMap(CTmap& b);
-	void insert(VarDecl *p);
-	void del(VarDecl *p);
-	Tainted_Attr *getAttr(VarDecl *p);
+	void insert(const VarDecl *p);
+	void del(const VarDecl *p);
+	Tainted_Attr *getAttr(const VarDecl *p);
 
 #ifdef USECLASS
-	classTmap *getClassTmap(VarDecl *p);
+	classTmap *getClassTmap(const VarDecl *p);
 #endif
-	void setType(VarDecl *p, eVarDeclType tp);
-	void var_attr_set(VarDecl *p, e_tattr e, VarDecl *r);
-	void var_attr_set(VarDecl *vd, Tainted_Attr *ta);
-	void ptr_set(VarDecl *p, Tainted_Attr *tp);
-	void ptr_attr_set(VarDecl *p, e_tattr e, VarDecl *r);
+	void setType(const VarDecl *p, eVarDeclType tp);
+	void var_attr_set(const VarDecl *p, e_tattr e, const VarDecl *r);
+	void var_attr_set(const VarDecl *vd, Tainted_Attr *ta);
+	void ptr_set(const VarDecl *p, Tainted_Attr *tp);
+	void ptr_attr_set(const VarDecl *p, e_tattr e, const VarDecl *r);
 #ifdef USECLASS
-	void classmember_attr_set(VarDecl *p, classTmap *ct);
-	void classmember_attr_set(VarDecl *p, e_tattr e, VarDecl *r, Expr *ptrExpr);
+	void classmember_attr_set(const VarDecl *p, classTmap *ct);
+	void classmember_attr_set(const VarDecl *p, e_tattr e, const VarDecl *r, Expr *ptrExpr);
 #endif
 	void AndMap(CTmap &b);
 	void clear();
-	VarDecl *get_VarDecl(int n);
+	const VarDecl *get_VarDecl(int n);
 };
 
 #endif
