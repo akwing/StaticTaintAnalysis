@@ -174,7 +174,11 @@ int main(int argc, char *argv[]) {
 	it3 = Callgraph.begin();
 	for (; it3 != Callgraph.end(); it3++)
 	{
-		checkCFG((*it3)->get_cfg(), (*it3)->getCTmap(), *it3);
+		if ((*it3)->getCur()->getQualifiedNameAsString().compare(string("main")))
+		{
+			checkCFG((*it3)->get_cfg(), (*it3)->getCTmap(), *it3);
+			break;
+		}
 	}
 	
 	return 0;
