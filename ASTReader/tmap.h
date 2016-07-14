@@ -1,5 +1,5 @@
-#ifndef TMAP_H
-#define TMAP_H
+#ifndef _TMAP_H_
+#define _TMAP_H_
 
 #include <iostream>
 #include <map>
@@ -47,7 +47,6 @@ private:
 			//污染属性
 			e_tattr attr;
 			//污染与哪些变量相关
-			unsigned relation;
 		}var;
 		//指向该指针指向的变量的污染属性
 		Tainted_Attr *ptrAttr;
@@ -58,6 +57,7 @@ private:
 #endif
 	}u;
 	eVarDeclType type;
+	set<VarDecl *> relation;
 public:
 	Tainted_Attr();
 	Tainted_Attr(eVarDeclType mytype
@@ -66,12 +66,13 @@ public:
 #endif
 		);
 	Tainted_Attr(Tainted_Attr& b);
+	~Tainted_Attr();
 
 	/*获取相关的函数*/
 
 	eVarDeclType getType();
 	e_tattr getVariableAttr();
-	unsigned getVariableRelation();
+	set<VarDecl *> *getVariableRelation();
 #ifdef USECLASS
 	classTmap *getClassDecl();
 #endif
@@ -84,16 +85,17 @@ public:
 
 	/*属性设置相关的函数*/
 
-	void var_attr_set(e_tattr a, unsigned r);
+	void var_attr_set(e_tattr a, VarDecl *r);
+	void var_attr_set(e_tattr a, set<VarDecl *> r);
 #ifdef USECLASS
-	void class_attr_set(e_tattr a, unsigned r, Expr *ptrExp);
+	void class_attr_set(e_tattr a, VarDecl *r, Expr *ptrExp);
 	void classmember_set(classTmap *ct);
-	void classpointer_attr_set(e_tattr a, unsigned r, Expr *ptrExp);
+	void classpointer_attr_set(e_tattr a, VarDecl *r, Expr *ptrExp);
 #endif
-	void pointer_attr_set(e_tattr a, unsigned r);
+	void pointer_attr_set(e_tattr a, VarDecl *r);
 	void setPointer(Tainted_Attr *pt);
 	void setType(eVarDeclType tp);
-	void AndAttr(Tainted_Attr &b);
+	void AndAttr(Tainted_Attr &a, Tainted_Attr &b);
 };
 
 //封装了C++ map模板的污染表类 
@@ -115,12 +117,13 @@ public:
 	classTmap *getClassTmap(VarDecl *p);
 #endif
 	void setType(VarDecl *p, eVarDeclType tp);
-	void var_attr_set(VarDecl *p, e_tattr e, unsigned r);
+	void var_attr_set(VarDecl *p, e_tattr e, VarDecl *r);
+	void var_attr_set(VarDecl *vd, Tainted_Attr *ta);
 	void ptr_set(VarDecl *p, Tainted_Attr *tp);
-	void ptr_attr_set(VarDecl *p, e_tattr e, unsigned r);
+	void ptr_attr_set(VarDecl *p, e_tattr e, VarDecl *r);
 #ifdef USECLASS
 	void classmember_attr_set(VarDecl *p, classTmap *ct);
-	void classmember_attr_set(VarDecl *p, e_tattr e, unsigned r, Expr *ptrExpr);
+	void classmember_attr_set(VarDecl *p, e_tattr e, VarDecl *r, Expr *ptrExpr);
 #endif
 	void AndMap(CTmap &b);
 	void clear();
