@@ -299,3 +299,42 @@ int callgraph::getVarNum()
 {
 	return varNum;
 }
+
+bool callgraph::is_caller(FunctionDecl* fd)
+{
+	int size = caller.size();
+	if (size == 0)
+		return false;
+	for (int i = 0; i < size; i++)
+	{
+		if (caller[i] == fd)
+			return true;
+	}
+	return false;
+}
+
+bool callgraph::is_callee(FunctionDecl* fd)
+{
+	int size = callee.size();
+	if (size == 0)
+		return false;
+	for (int i = 0; i < size; i++)
+	{
+		if (callee[i] == fd)
+			return true;
+	}
+	return false;
+}
+
+bool if_find_function(vector<callgraph*> Callgraph, FunctionDecl* fd)
+{
+	if (Callgraph.size() == 0)
+		return false;
+	vector<callgraph*>::iterator it=Callgraph.begin(),it_end=Callgraph.end();
+	for (; it != it_end; it++)
+	{
+		if ((*it)->getCur() == fd)
+			return true;
+	}
+	return false;
+}
