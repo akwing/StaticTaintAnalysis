@@ -748,7 +748,6 @@ bool Tainted_Attr::compareAttr(Tainted_Attr &ta)
 //比较两个map是否相同，相同则返回true，自用
 bool CTmap::compareMap(CTmap &tm)
 {
-	const VarDecl *vd;
 	Tainted_Attr *ta;
 	map<const VarDecl*, Tainted_Attr *>::iterator it = tmap.begin(), it_end = tmap.end();
 	while (it != it_end)
