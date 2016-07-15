@@ -79,3 +79,16 @@ void printClassTmap(std::vector<classTmap*> CT)
 		}
 	}
 }
+
+bool if_find_class(vector<classTmap*>ClassTmap, CXXRecordDecl* rd)
+{
+	if (ClassTmap.size() == 0)
+		return false;
+	vector<classTmap*>::iterator it = ClassTmap.begin(), it_end = ClassTmap.end();
+	for (; it != it_end; it++)
+	{
+		if ((*it)->get_cxxrd() == rd)
+			return true;
+	}
+	return false;
+}
