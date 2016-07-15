@@ -20,14 +20,15 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 		bool changed = false;
 
 		//为每个block计算其新的out
-		int i = 0;
+		int i = 1;
+		cout << "***************************************" << endl;
+		cout << "CFG check " << i << " start:" << endl;
 		for (map<clang::CFGBlock *, CFGInOut>::reverse_iterator r_iter = block_io_map.rbegin(), r_end = block_io_map.rend(); r_iter != r_end; r_iter++)
 		{
 			i++;
 			//计算新的in，即对block的前驱的out求并，作为该block的in
 			pred_it = r_iter->first->succ_begin(), pred_end = r_iter->first->succ_end();
 			clang::CFGBlock* temp = NULL;
-
 			if (r_iter->first != &cfg.getEntry())
 			{
 				inm = r_iter->second.GetIN();
@@ -41,22 +42,32 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 					pred_it++;
 				}
 			}
-
+			else
+			{
+				continue;
+			}
 			outm = r_iter->second.GetOUT();
+			preout.CopyMap(*outm);
 			outm->CopyMap(*inm);
-
+			
 			//checkblock, modify changed
 
 			if (outm->compareMap(preout) == false)
+			{
 				changed = true;
+				outm->output();
+			}
 		}
 
 		//迭代至所有block的OUT都不发生改变，跳出循环
+		cout << endl;
+		cout << "***************************************" << endl;
 		if (changed == false)
 			break;
+		i++;
 	}
 	//here to add output
-	//printiotable(block_io_map);
+	printiotable(block_io_map);
 }
 
 //为每个语句块创建INOUT污染表
@@ -86,12 +97,12 @@ void build_block_io_table(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang:
 //打印一个block的污染信息
 void printBlockMsg(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *block)
 {
-	cout << endl << "============" << endl;
+	cout << endl << "============================" << endl;
 	cout << "B" << block->getBlockID() << ":" << endl << "IN" << endl;
 	block_io_map[block].GetIN()->output();
 	cout << endl << "OUT"<<endl;
 	block_io_map[block].GetOUT()->output();
-	cout << "============" << endl;
+	cout << "============================" << endl;
 }
 
 //打印当前函数中每个block的污染信息
