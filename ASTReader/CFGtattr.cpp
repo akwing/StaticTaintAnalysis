@@ -15,19 +15,18 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 	//printiotable(block_io_map);
 
 	//主循环，当无OUT发生改变时跳出循环
+	int i = 1;
 	while (1)
 	{
 		bool changed = false;
 
 		//为每个block计算其新的out
-		int i = 1;
-		cout << "***************************************" << endl;
-		cout << "CFG check " << i << " start:" << endl;
+		cout << "****************************" << endl;
+		cout << "CFG check " << i << " start........." << endl;
 		for (map<clang::CFGBlock *, CFGInOut>::reverse_iterator r_iter = block_io_map.rbegin(), r_end = block_io_map.rend(); r_iter != r_end; r_iter++)
 		{
-			i++;
 			//计算新的in，即对block的前驱的out求并，作为该block的in
-			pred_it = r_iter->first->succ_begin(), pred_end = r_iter->first->succ_end();
+			pred_it = r_iter->first->pred_begin(), pred_end = r_iter->first->pred_end();
 			clang::CFGBlock* temp = NULL;
 			if (r_iter->first != &cfg.getEntry())
 			{
@@ -37,10 +36,12 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 				while (pred_it != pred_end)
 				{
 					temp = pred_it->getReachableBlock();
+					cout << "BBB" << temp->getBlockID() << endl;;
 					outm = block_io_map[temp].GetOUT();
 					inm->unionMap(*outm);
 					pred_it++;
 				}
+				cout << endl;
 			}
 			else
 			{
@@ -51,17 +52,17 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 			outm->CopyMap(*inm);
 			
 			//checkblock, modify changed
-
+			checkblock(r_iter->first, *outm,cg);
 			if (outm->compareMap(preout) == false)
 			{
 				changed = true;
-				outm->output();
+				printBlockMsg(block_io_map,r_iter->first);
 			}
 		}
 
 		//迭代至所有block的OUT都不发生改变，跳出循环
-		cout << endl;
-		cout << "***************************************" << endl;
+		cout << "CFG check " << i << " end." << endl;
+		cout << "****************************" << endl;
 		if (changed == false)
 			break;
 		i++;
@@ -102,7 +103,7 @@ void printBlockMsg(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlo
 	block_io_map[block].GetIN()->output();
 	cout << endl << "OUT"<<endl;
 	block_io_map[block].GetOUT()->output();
-	cout << "============================" << endl;
+	cout << "============================" << endl<<endl;
 }
 
 //打印当前函数中每个block的污染信息
