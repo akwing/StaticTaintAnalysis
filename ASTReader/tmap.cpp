@@ -125,8 +125,7 @@ void Tainted_Attr::output()
 			cout << "UN ";
 		else
 		{
-			cout << "RE ";
-			cout << "Related to: ";
+			cout << "RE Related to: ";
 			while (it != it_end)
 			{
 				vd = *it;
@@ -138,7 +137,7 @@ void Tainted_Attr::output()
 	//here to add output
 	else
 	{
-		cout << "unknown type" << endl;
+		cout << "unknown";
 	}
 }
 
@@ -196,7 +195,8 @@ void Tainted_Attr::var_attr_set(e_tattr a, const VarDecl *vd)
 	if (type == TYPE_VARIABLE)
 	{
 		u.var.attr = a;
-		relation.insert(relation.end(), vd);
+		if (a == RELATED)
+			relation.insert(relation.end(), vd);
 	}
 }
 
@@ -449,7 +449,7 @@ void CTmap::CopyMap(CTmap& b)
 	Tainted_Attr *t = NULL, *newattr;
 	const VarDecl *pdec = NULL;
 	map<const VarDecl *, Tainted_Attr *>::iterator it = b.tmap.begin(), it_end = b.tmap.end();
-
+	
 	while (it != it_end)
 	{
 		pdec = it->first;
@@ -457,9 +457,8 @@ void CTmap::CopyMap(CTmap& b)
 		//pdec==class here to add how to copy
 
 		newattr = new Tainted_Attr;
-
 		newattr->copy(t);
-
+		
 		tmap[pdec] = newattr;
 		it++;
 	}
