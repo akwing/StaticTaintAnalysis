@@ -25,6 +25,8 @@ public:
 	VarDecl* getRoot();
 	methodType getMethodType();
 	int ifCheck;
+	bool is_caller(FunctionDecl* fd);
+	bool is_callee(FunctionDecl* fd);
 
 public:
 	std::unique_ptr<CFG>& get_cfg();
