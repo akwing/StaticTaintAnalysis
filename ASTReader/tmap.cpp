@@ -124,13 +124,15 @@ void Tainted_Attr::output()
 		else if (u.var.attr == UNTAINTED)
 			cout << "UN ";
 		else
-			cout << "RE ";
-		cout << "Related to: ";
-		while (it != it_end)
 		{
-			vd = *it;
-			cout << vd->getNameAsString() << " ";
-			it++;
+			cout << "RE ";
+			cout << "Related to: ";
+			while (it != it_end)
+			{
+				vd = *it;
+				cout << vd->getNameAsString() << " ";
+				it++;
+			}
 		}
 	}
 	//here to add output
