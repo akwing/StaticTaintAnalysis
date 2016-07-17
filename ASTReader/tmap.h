@@ -10,7 +10,7 @@
 #include "clang/Basic/FileSystemOptions.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 
-//#define USECLASS
+#define USECLASS
 
 #ifdef USECLASS
 #include "classTmap.h"
@@ -32,35 +32,40 @@ typedef enum{
 	TYPE_VARIABLE,	//变量
 #ifdef USECLASS
 	TYPE_CLASS,		//类
-	TYPE_CLASSPOINTER,//指向类的指针
 #endif
 	TYPE_POINTER,	//指针
 	TYPE_UNKNOWN	//未知
-}eVarDeclType;
+}VarDeclType;
+
+typedef enum{
+	U2T,
+	T2U,
+	OTHER
+}MessageType;
 
 //变量的污染属性
 class Tainted_Attr
 {
 private:
-	union{
-		struct{
-			//污染属性
-			e_tattr attr;
-			//污染与哪些变量相关
-		}var;
-		//指向该指针指向的变量的污染属性
-		Tainted_Attr *ptrAttr;
+	VarDeclType type;
+
+	//污染属性
+	e_tattr attr;
+	//污染与哪些变量相关
+	set<const VarDecl *> relation;
+
+	//指向该指针指向的位置的污染状态
+	Tainted_Attr *ptrAttr;
+	bool is_temp;
 
 #ifdef USECLASS
-		//指向该类的实例的map
-		classTmap *ptrClassDecl;
+	//指向该类的实例的map
+	classTmap *ptrClassDecl;
 #endif
-	}u;
-	eVarDeclType type;
-	set<const VarDecl *> relation;
+
 public:
 	Tainted_Attr();
-	Tainted_Attr(eVarDeclType mytype
+	Tainted_Attr(VarDeclType mytype
 #ifdef USECLASS
 		, classTmap *ct
 #endif
@@ -70,13 +75,14 @@ public:
 
 	/*获取相关的函数*/
 
-	eVarDeclType getType();
+	VarDeclType getType();
 	e_tattr getVariableAttr();
 	set<const VarDecl *> *getVariableRelation();
 #ifdef USECLASS
 	classTmap *getClassDecl();
 #endif
 	Tainted_Attr *getPointerAttr();
+	bool getistemp();
 
 	/*调试相关的函数*/
 
@@ -90,11 +96,10 @@ public:
 #ifdef USECLASS
 	void class_attr_set(e_tattr a, const VarDecl *r, Expr *ptrExp);
 	void classmember_set(classTmap *ct);
-	void classpointer_attr_set(e_tattr a, const VarDecl *r, Expr *ptrExp);
 #endif
 	void pointer_attr_set(e_tattr a, const VarDecl *r);
 	void setPointer(Tainted_Attr *pt);
-	void setType(eVarDeclType tp);
+	void setType(VarDeclType tp);
 	void unionAttr(Tainted_Attr &a, Tainted_Attr &b);
 	void unionAttr(Tainted_Attr &a);
 	bool compareAttr(Tainted_Attr &ta);
@@ -113,12 +118,13 @@ public:
 	void CopyMap(CTmap& b);
 	void insert(const VarDecl *p);
 	void del(const VarDecl *p);
-	Tainted_Attr *getAttr(const VarDecl *p);
+	Tainted_Attr *getAttr(const VarDecl *vd);
+	Tainted_Attr *getPointerAttr(const VarDecl *vd);
 
 #ifdef USECLASS
 	classTmap *getClassTmap(const VarDecl *p);
 #endif
-	void setType(const VarDecl *p, eVarDeclType tp);
+	void setType(const VarDecl *p, VarDeclType tp);
 	void var_attr_set(const VarDecl *p, e_tattr e, const VarDecl *r);
 	void var_attr_set(const VarDecl *vd, Tainted_Attr *ta);
 	void ptr_set(const VarDecl *p, Tainted_Attr *tp);
