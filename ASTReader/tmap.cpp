@@ -27,7 +27,9 @@ Tainted_Attr::Tainted_Attr(VarDeclType mytype
 	{
 		attr = UNTAINTED;
 		ptrAttr = NULL;
+#ifdef USECLASS
 		ptrClassDecl = NULL;
+#endif
 		is_temp = false;
 	}
 #ifdef USECLASS
@@ -39,7 +41,9 @@ Tainted_Attr::Tainted_Attr(VarDeclType mytype
 	else
 	{
 		ptrAttr = NULL;
+#ifdef USECLASS
 		ptrClassDecl = NULL;
+#endif
 		type = TYPE_UNKNOWN;
 	}
 }
@@ -82,6 +86,17 @@ Tainted_Attr::~Tainted_Attr()
 {
 	relation.clear();
 	if (type == TYPE_POINTER)
+	{
+		if (is_temp)
+		{
+			ptrAttr->~Tainted_Attr();
+			delete ptrAttr;
+		}
+		ptrAttr = NULL;
+		type = TYPE_UNKNOWN;
+		attr = UNTAINTED;
+
+	}
 #ifdef USECLASS
 	if(type == TYPE_CLASS)
 	{
