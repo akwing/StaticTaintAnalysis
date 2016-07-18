@@ -1,10 +1,13 @@
-#ifndef CFGTATTR_H
-#define CFGTATTR_H
+#ifndef _CFGTATTR_H_
+#define _CFGTATTR_H_
+
+class callgraph;
 
 #include "tmap.h"
 #include "AST.h"
 #include "callgraph.h"
 #include "clang\Analysis\CFG.h"
+#include "TaintedStmtAnalysis.h"
 
 using namespace std;
 using namespace clang;
