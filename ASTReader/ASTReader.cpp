@@ -169,17 +169,16 @@ int main(int argc, char *argv[]) {
 			for (int i = 0; i < paramNum; i++)
 			{
 				ParmVarDecl* parm_temp = cur->getParamDecl(i);
+				(*it_callgraph)->addParam(parm_temp);
+				CTmap* map = &(*it_callgraph)->getCTmap();
 				if (parm_temp->getType()->isPointerType())
 				{
-					//(*it_callgraph)->addParam(parm_temp);
-					//CTmap* map = &(*it_callgraph)->getCTmap();
-					//map->setType(parm_temp, TYPE_POINTER);
-					//map->ptr_attr_set(parm_temp, RELATED, parm_temp);
+					map->setType(parm_temp, TYPE_POINTER);
+					//map->ptr_attr_set(parm_temp, UNTAINTED, NULL);
 				}
 				else
 				{
-					(*it_callgraph)->addParam(parm_temp);
-					CTmap* map = &(*it_callgraph)->getCTmap();
+					
 					map->setType(parm_temp, TYPE_VARIABLE);
 					map->var_attr_set(parm_temp, RELATED, parm_temp);
 				}
@@ -195,17 +194,15 @@ int main(int argc, char *argv[]) {
 		{
 			//std::cout << (*varIt)->getQualifiedNameAsString() << "\n";
 			VarDecl* var_temp = *var_it;
+			(*it_callgraph)->addVar(var_temp);
+			CTmap* map = &(*it_callgraph)->getCTmap();
 			if (var_temp->getType()->isPointerType())
 			{
-				//(*it_callgraph)->addVar(var_temp);
-				//CTmap* map = &(*it_callgraph)->getCTmap();
-				//map->setType(parm_temp, TYPE_POINTER);
-				//map->ptr_attr_set(parm_temp, UNTAINTED, 0);
+				map->setType(var_temp, TYPE_POINTER);
+			//	map->ptr_attr_set(var_temp, UNTAINTED, NULL);
 			}
 			else
 			{
-				(*it_callgraph)->addVar(var_temp);
-				CTmap* map = &(*it_callgraph)->getCTmap();
 				map->setType(var_temp, TYPE_VARIABLE);
 				map->var_attr_set(var_temp, UNTAINTED, NULL);
 			}
@@ -284,4 +281,3 @@ void print_file(const vector<string> files)
 		cout << files[i] << endl;
 	}
 }
-
