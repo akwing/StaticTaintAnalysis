@@ -14,10 +14,10 @@ vector<callgraph*> Callgraph;
 vector<classTmap*> ClassTmap;
 vector<unique_ptr<ASTUnit>> astUnit;
 vector<string> files;
-//void printCallGraph(std::vector<callgraph*> Callgraph);
 
 void get_file(string path,vector<string>& all_file);
 void print_file(const vector<string> files);
+bool is_syslib(string rd);
 
 int main(int argc, char *argv[]) {
 	//获取目录下所有.cpp、.c文件所生成的.ast文件
@@ -52,6 +52,8 @@ int main(int argc, char *argv[]) {
 			std::vector<CXXRecordDecl*>::iterator rd_it, rd_it_end = cxxrds.end();
 			for (rd_it = cxxrds.begin(); rd_it != rd_it_end; rd_it++)
 			{
+				if (is_syslib((*rd_it)->getQualifiedNameAsString()) == true)
+					continue;
 				//在ClassTmap中加入新发现的class
 				if (if_find_class(ClassTmap, *rd_it))
 				{
@@ -111,6 +113,8 @@ int main(int argc, char *argv[]) {
 			 callgraph* tempCallNode;
 			 for (it_func_decl = func.begin(); it_func_decl != func.end(); it_func_decl++)
 			 {
+				 if (is_syslib((*it_func_decl)->getQualifiedNameAsString()) == true)
+					 continue;
 				 //重复的functiondecl
 				 if (if_find_function(Callgraph, (*it_func_decl)) == true)
 					 continue;
@@ -129,7 +133,6 @@ int main(int argc, char *argv[]) {
 	callgraph* tempCallgraph;
 	//为所有方法添加函数调用关系
 
-	//callgraph_size = Callgraph.size();//更新size
 	FunctionDecl* cur;
 	for (; it_callgraph != it_call_last;it_callgraph++)
 	{
@@ -280,4 +283,16 @@ void print_file(const vector<string> files)
 	{
 		cout << files[i] << endl;
 	}
+}
+
+bool is_syslib(string rd)
+{
+	if (regex_match(rd, regex("(std::)(.*)")))
+		return true;
+	else if (regex_match(rd, regex("(stdext::)(.*)")))
+		return true;
+	//else if (regex_match(rd, regex("(type_info::)(.*)")))
+		//return true;
+	else
+		return false;
 }
