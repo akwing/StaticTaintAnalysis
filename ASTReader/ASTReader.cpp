@@ -25,7 +25,6 @@ int main(int argc, char *argv[]) {
 	get_file(argv[1], files);
 	//print_file(files);
 
-	//unsigned callgraph_size = 0;	//已经完成的functionDecl数目（与callgraph一一对应）
 	int func_num = 0;
 	int class_num = 0;
 
@@ -38,9 +37,15 @@ int main(int argc, char *argv[]) {
 		IntrusiveRefCntPtr<DiagnosticsEngine> Diags = CompilerInstance::createDiagnostics(new DiagnosticOptions());
 		CompilerInstance compiler;
 		unique_ptr<ASTUnit> AU = ASTUnit::LoadFromASTFile(files[i], compiler.getPCHContainerReader(), Diags, opts);
-		 astUnit.insert(astUnit.end(),move(AU));		//保存ASTUnit
+		//保存ASTUnit
+		 astUnit.insert(astUnit.end(),move(AU));		
 		 int astUnit_size = astUnit.size();
 		ASTContext &context = (astUnit[astUnit_size-1])->getASTContext();
+
+		//扫描AST获取全局变量定义
+		//ASTCXXRecordLoad loadClass;
+		//loadClass.HandleTranslationUnit(context);
+		//std::vector<CXXRecordDecl*>   cxxrds = loadClass.getClassDecl();
 
 		//扫描AST获取类定义
 		ASTCXXRecordLoad loadClass;
@@ -52,8 +57,10 @@ int main(int argc, char *argv[]) {
 			std::vector<CXXRecordDecl*>::iterator rd_it, rd_it_end = cxxrds.end();
 			for (rd_it = cxxrds.begin(); rd_it != rd_it_end; rd_it++)
 			{
+				//是否为库类
 				if (is_syslib((*rd_it)->getQualifiedNameAsString()) == true)
 					continue;
+
 				//在ClassTmap中加入新发现的class
 				if (if_find_class(ClassTmap, *rd_it))
 				{
@@ -63,14 +70,16 @@ int main(int argc, char *argv[]) {
 				curClass->setCXXRecordDecl(*rd_it);
 				ClassTmap.push_back(curClass);
 				class_num++;
-				//添加类方法decl
+
+				//添加类方法decl(仅仅为其创建callgraph函数，添加caller等操作之后统一进行)
 				ASTCXXMethodDeclLoad loadClassMethod;
 				std::vector<CXXMethodDecl *> cxxmds;
 				std::vector<CXXMethodDecl *>::iterator it_cxxmds;
 				//std::cout << (*rd_it)->getQualifiedNameAsString() << "\n";
 				loadClassMethod.TraverseDecl(*rd_it);
 				cxxmds = loadClassMethod.getCXXMethodDecl();
-				if (cxxmds.size() > 0)
+
+				if (cxxmds.size() > 0)//类方法数目
 				{
 					for (it_cxxmds = cxxmds.begin(); it_cxxmds != cxxmds.end(); it_cxxmds++)
 					{
@@ -113,8 +122,10 @@ int main(int argc, char *argv[]) {
 			 callgraph* tempCallNode;
 			 for (it_func_decl = func.begin(); it_func_decl != func.end(); it_func_decl++)
 			 {
+				 //是否为库函数
 				 if (is_syslib((*it_func_decl)->getQualifiedNameAsString()) == true)
 					 continue;
+
 				 //重复的functiondecl
 				 if (if_find_function(Callgraph, (*it_func_decl)) == true)
 					 continue;
@@ -137,6 +148,15 @@ int main(int argc, char *argv[]) {
 	for (; it_callgraph != it_call_last;it_callgraph++)
 	{
 		cur = (*it_callgraph)->getCur();
+
+		//设置函数返回值类型
+		if (cur->getReturnType()->isPointerType())
+			(*it_callgraph)->getReturn()->setType(TYPE_POINTER);
+	//	else if (cur->getReturnType()->isStructureOrClassType())
+		//	(*it_callgraph)->getReturn()->setType(TYPE_CLASS);
+		else
+			(*it_callgraph)->getReturn()->setType(TYPE_VARIABLE);
+
 		ASTCallExprLoad load2;
 		load2.TraverseStmt(cur->getBody());
 		callExpr = load2.getCallExprs();
@@ -174,18 +194,24 @@ int main(int argc, char *argv[]) {
 				ParmVarDecl* parm_temp = cur->getParamDecl(i);
 				(*it_callgraph)->addParam(parm_temp);
 				CTmap* map = &(*it_callgraph)->getCTmap();
+
+				//设置参数的污染信息相关的初始化
 				if (parm_temp->getType()->isPointerType())
 				{
 					map->setType(parm_temp, TYPE_POINTER);
 					//map->ptr_attr_set(parm_temp, UNTAINTED, NULL);
 				}
+			/*	else if (parm_temp->getType()->isStructureOrClassType())
+				{
+					map->setType(parm_temp, TYPE_CLASS);
+					map->var_attr_set(parm_temp, RELATED, parm_temp);
+				}
+				*/
 				else
 				{
-					
 					map->setType(parm_temp, TYPE_VARIABLE);
 					map->var_attr_set(parm_temp, RELATED, parm_temp);
 				}
-				//(*it_callgraph)->getCTmap().setAttr(cur->getParamDecl(i), RELATED, 1 << i);
 			}
 		}
 
@@ -199,11 +225,20 @@ int main(int argc, char *argv[]) {
 			VarDecl* var_temp = *var_it;
 			(*it_callgraph)->addVar(var_temp);
 			CTmap* map = &(*it_callgraph)->getCTmap();
+
+			//设置变量的污染信息相关的初始化
 			if (var_temp->getType()->isPointerType())
 			{
 				map->setType(var_temp, TYPE_POINTER);
 			//	map->ptr_attr_set(var_temp, UNTAINTED, NULL);
 			}
+			/*
+			else if (var_temp->getType()->isStructureOrClassType())
+			{
+				map->setType(var_temp, TYPE_CLASS);
+				map->var_attr_set(var_temp, UNTAINTED, NULL);
+			}
+			*/
 			else
 			{
 				map->setType(var_temp, TYPE_VARIABLE);
