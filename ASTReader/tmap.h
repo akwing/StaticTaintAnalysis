@@ -91,6 +91,7 @@ public:
 
 	/*属性设置相关的函数*/
 
+	void settemp(bool b);
 	void var_attr_set(e_tattr a, const VarDecl *r);
 	void var_attr_set(e_tattr a, set<const VarDecl *> r);
 #ifdef USECLASS
