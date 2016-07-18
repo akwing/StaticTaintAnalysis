@@ -206,6 +206,16 @@ void Tainted_Attr::copy(Tainted_Attr *p)
 #endif
 }
 
+void Tainted_Attr::settemp(bool b)
+{
+	if (is_temp == true && b == false)
+	{
+		ptrAttr->~Tainted_Attr();
+		ptrAttr = NULL;
+	}
+	is_temp = b;
+}
+
 //信息设置函数，如果当前污染属性的类型不为VARIABLE，不会进行修改，并警告
 void Tainted_Attr::var_attr_set(e_tattr a, const VarDecl *vd)
 {
@@ -279,6 +289,11 @@ void Tainted_Attr::classmember_set(classTmap *ct)
 //将当前污染属性指向pt指向的位置，如果当前污染属性的类型不为POINTER，不会进行修改，并警告
 void Tainted_Attr::setPointer(Tainted_Attr *pt)
 {
+	if (pt == NULL)
+	{
+		ptrAttr = NULL;
+		return;
+	}
 	if (type != TYPE_POINTER)
 	{
 		cout << "Warning: type != POINTER" << endl;
@@ -292,6 +307,7 @@ void Tainted_Attr::setPointer(Tainted_Attr *pt)
 #endif
 			)
 		{
+			copy(pt);
 			ptrAttr = pt;
 			return;
 		}
@@ -309,7 +325,9 @@ void Tainted_Attr::setType(VarDeclType tp)
 	}
 	else if (tp == TYPE_POINTER)
 	{
+		attr = UNTAINTED;
 		ptrAttr = NULL;
+		is_temp = false;
 	}
 #ifdef USECLASS
 	else if (tp == TYPE_CLASS)
@@ -808,4 +826,36 @@ bool CTmap::compareMap(CTmap &tm)
 		it++;
 	}
 	return true;
+}
+
+void f()
+{
+	Tainted_Attr *ptr_p, *ptr_a;//分别存了p和a的污染状况
+
+	//p = &a;(p为指针，a为一般变量)
+	
+	ptr_p->~Tainted_Attr();
+	ptr_p->setType(TYPE_POINTER);
+	ptr_p->setPointer(ptr_a);	//会自动将p的污染属性设置为与a相同，且指针会指向a的条目
+	
+	
+	//p = p + 1;(指针指向了下一个位置)
+	if (ptr_p->getistemp() == false)//不是动态创建的变量
+		ptr_p->setPointer(NULL);//将指针从本来指向的内存移开
+	else
+		ptr_p->settemp(false);
+
+	
+	//a = (*p) + b;(a，b为变量，p为指针)
+	ptr_p->getPointerAttr(); //取得指向的变量的污染条目，之后用这个条目与b的取并
+
+	//*p = a + b;
+	ptr_p->getPointerAttr(); //取得指向的变量的污染条目，之后操作与一般变量相同
+
+	//p = new int;(例如p指向了动态变量)
+	Tainted_Attr *temp = new Tainted_Attr();
+	ptr_p->~Tainted_Attr();
+	ptr_p->setType(TYPE_POINTER);
+	ptr_p->settemp(true);
+	
 }
