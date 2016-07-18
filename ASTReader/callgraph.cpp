@@ -337,3 +337,13 @@ bool if_find_function(vector<callgraph*> Callgraph, FunctionDecl* fd)
 	}
 	return false;
 }
+
+Tainted_Attr* callgraph::getReturn()
+{
+	return returnVar;
+}
+
+void callgraph::setReturn(Tainted_Attr* temp)
+{
+	returnVar->copy(temp);
+}
