@@ -8,9 +8,9 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 	clang::CFGBlock::pred_iterator pred_it, pred_end;
 
 	CTmap *outm = NULL, *inm = NULL, preout;
-	map<clang::CFGBlock *, CFGInOut> block_io_map;
+	
 
-	build_block_io_table(block_io_map, CFGexit, CFGentry, tm);
+	build_block_io_table(cg->block_io_map, CFGexit, CFGentry, tm);
 	cg->print_cfg();
 	//printiotable(block_io_map);
 
@@ -21,9 +21,9 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 		bool changed = false;
 
 		//为每个block计算其新的out
-		cout << "****************************" << endl;
+		cout << "******************************" << endl;
 		cout << "CFG check " << i << " start........." << endl;
-		for (map<clang::CFGBlock *, CFGInOut>::reverse_iterator r_iter = block_io_map.rbegin(), r_end = block_io_map.rend(); r_iter != r_end; r_iter++)
+		for (map<clang::CFGBlock *, CFGInOut>::reverse_iterator r_iter = cg->block_io_map.rbegin(), r_end = cg->block_io_map.rend(); r_iter != r_end; r_iter++)
 		{
 			//计算新的in，即对block的前驱的out求并，作为该block的in
 			pred_it = r_iter->first->pred_begin(), pred_end = r_iter->first->pred_end();
@@ -36,12 +36,11 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 				while (pred_it != pred_end)
 				{
 					temp = pred_it->getReachableBlock();
-					cout << "BBB" << temp->getBlockID() << endl;;
-					outm = block_io_map[temp].GetOUT();
+					//cout << "is B" << temp->getBlockID() << endl;;
+					outm = cg->block_io_map[temp].GetOUT();
 					inm->unionMap(*outm);
 					pred_it++;
 				}
-				cout << endl;
 			}
 			else
 			{
@@ -56,19 +55,22 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 			if (outm->compareMap(preout) == false)
 			{
 				changed = true;
-				printBlockMsg(block_io_map,r_iter->first);
+			//	printBlockMsg(block_io_map,r_iter->first);
 			}
 		}
 
 		//迭代至所有block的OUT都不发生改变，跳出循环
 		cout << "CFG check " << i << " end." << endl;
-		cout << "****************************" << endl;
+		cout << "******************************" << endl;
 		if (changed == false)
 			break;
 		i++;
 	}
 	//here to add output
-	printiotable(block_io_map);
+	printiotable(cg->block_io_map);
+
+	//将函数出口处的tmap填写到callgraph中
+	cg->getCTmap().CopyMap(*cg->block_io_map[&cfg.getExit()].GetOUT());
 }
 
 //为每个语句块创建INOUT污染表
@@ -98,21 +100,24 @@ void build_block_io_table(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang:
 //打印一个block的污染信息
 void printBlockMsg(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *block)
 {
-	cout << endl << "============================" << endl;
+	cout << endl << "------------------------------" << endl;
 	cout << "B" << block->getBlockID() << ":" << endl << "IN" << endl;
 	block_io_map[block].GetIN()->output();
 	cout << endl << "OUT"<<endl;
 	block_io_map[block].GetOUT()->output();
-	cout << "============================" << endl<<endl;
+	cout << "------------------------------" << endl << endl;
 }
 
 //打印当前函数中每个block的污染信息
 void printiotable(map<clang::CFGBlock *, CFGInOut> &block_io_map)
 {
+	cout << endl << "==============================" << endl;
+	cout << "Block message print starts...." << endl;
 	map<clang::CFGBlock *, CFGInOut>::iterator it = block_io_map.begin(), it_end = block_io_map.end();
 	while (it != it_end)
 	{
 		printBlockMsg(block_io_map, it->first);
 		it++;
 	}
+	cout << "==============================" << endl << endl;
 }
