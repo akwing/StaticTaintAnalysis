@@ -3,6 +3,7 @@
 
 
 #include "AST.h"
+#include "CFGattr.h"
 
 typedef enum
 {
@@ -42,6 +43,10 @@ public:
 	int getVarNum();
 	Tainted_Attr* getReturn();
 	void setReturn(Tainted_Attr* temp);
+	
+	
+public:
+	std::map<clang::CFGBlock *, CFGInOut> block_io_map;
 
 private:
 	//方法的类型
