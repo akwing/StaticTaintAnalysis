@@ -40,6 +40,8 @@ public:
 	void addVar(VarDecl* vd);
 	int getParamNum();
 	int getVarNum();
+	Tainted_Attr* getReturn();
+	void setReturn(Tainted_Attr* temp);
 
 private:
 	//方法的类型
