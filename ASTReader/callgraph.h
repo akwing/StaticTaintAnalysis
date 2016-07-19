@@ -5,7 +5,7 @@ class CFGInOut;
 
 #include "AST.h"
 #include "CFGtattr.h"
-#include "TaintedChangeInfo.h"
+#include "TCI.h"
 
 typedef enum
 {
