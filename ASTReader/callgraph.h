@@ -4,6 +4,7 @@
 
 #include "AST.h"
 #include "CFGattr.h"
+#include "TCI.h"
 
 typedef enum
 {
@@ -47,6 +48,7 @@ public:
 	
 public:
 	std::map<clang::CFGBlock *, CFGInOut> block_io_map;
+	std::vector<TCI*> TCI_list;
 
 private:
 	//方法的类型
