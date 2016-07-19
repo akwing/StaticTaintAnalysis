@@ -27,6 +27,17 @@ private:
 	std::vector<FunctionDecl *> functions;
 };
 
+//获取Funtion相关语句
+class ASTGlobalVarDeclLoad : public ASTConsumer, public RecursiveASTVisitor < ASTGlobalVarDeclLoad > {	//get functions
+
+public:
+	void HandleTranslationUnit(ASTContext &Context) override;
+	bool VisitGlobalVarDecl(VarDecl *FD);
+	const std::vector<VarDecl *> &getGlobalVarDecls() const;
+private:
+	std::vector<VarDecl *> globalVars;
+};
+
 //被调用函数
 class ASTCalledFunctionLoad : public RecursiveASTVisitor<ASTCalledFunctionLoad> {
 public:
@@ -86,6 +97,28 @@ public:
 private:
 	std::vector<FieldDecl *> fds;
 };
+
+//获取类构造函数decl
+/*class ASTCXXConstructorDeclLoad : public ASTConsumer, public RecursiveASTVisitor<ASTCXXConstructorDeclLoad> {
+public:
+	void HandleTranslationUnit(ASTContext &Context) override {
+		TranslationUnitDecl *D = Context.getTranslationUnitDecl();
+		TraverseDecl(D);
+	}
+
+	bool VisitClassDecl(CXXConstructorDecl *rd) {
+		cxxcds.insert(rd);
+		return true;
+	}
+
+	const std::vector<CXXConstructorDecl *> getClassConstructorDecl() {
+		return std::vector<CXXConstructorDecl *>(cxxcds.begin(), cxxcds.end());
+	}
+
+private:
+	std::set<CXXConstructorDecl *> cxxcds;
+};*/
+
 
 
 #endif
