@@ -9,6 +9,8 @@
 #include "CFGtattr.h"
 
 using namespace std;
+using namespace clang;
+using namespace llvm;
 
 vector<callgraph*> Callgraph;
 vector<classTmap*> ClassTmap;
@@ -28,7 +30,7 @@ int main(int argc, char *argv[]) {
 	int func_num = 0;
 	int class_num = 0;
 
-	std::vector<callgraph*>::iterator it_callgraph, it_call_last = Callgraph.end();
+	vector<callgraph*>::iterator it_callgraph, it_call_last = Callgraph.end();
 	int file_size = files.size();
 	for (int i = 0; i < file_size;i++)
 	{
@@ -45,16 +47,16 @@ int main(int argc, char *argv[]) {
 		//扫描AST获取全局变量定义
 		//ASTCXXRecordLoad loadClass;
 		//loadClass.HandleTranslationUnit(context);
-		//std::vector<CXXRecordDecl*>   cxxrds = loadClass.getClassDecl();
+		//vector<CXXRecordDecl*>   cxxrds = loadClass.getClassDecl();
 
 		//扫描AST获取类定义
 		ASTCXXRecordLoad loadClass;
 		loadClass.HandleTranslationUnit(context);
-		std::vector<CXXRecordDecl*>   cxxrds = loadClass.getClassDecl();
+		vector<CXXRecordDecl*>   cxxrds = loadClass.getClassDecl();
 
 		if (cxxrds.size() > 0)//类的数目判断
 		{
-			std::vector<CXXRecordDecl*>::iterator rd_it, rd_it_end = cxxrds.end();
+			vector<CXXRecordDecl*>::iterator rd_it, rd_it_end = cxxrds.end();
 			for (rd_it = cxxrds.begin(); rd_it != rd_it_end; rd_it++)
 			{
 				//是否为库类
@@ -73,9 +75,9 @@ int main(int argc, char *argv[]) {
 
 				//添加类方法decl(仅仅为其创建callgraph函数，添加caller等操作之后统一进行)
 				ASTCXXMethodDeclLoad loadClassMethod;
-				std::vector<CXXMethodDecl *> cxxmds;
-				std::vector<CXXMethodDecl *>::iterator it_cxxmds;
-				//std::cout << (*rd_it)->getQualifiedNameAsString() << "\n";
+				vector<CXXMethodDecl *> cxxmds;
+				vector<CXXMethodDecl *>::iterator it_cxxmds;
+				//cout << (*rd_it)->getQualifiedNameAsString() << "\n";
 				loadClassMethod.TraverseDecl(*rd_it);
 				cxxmds = loadClassMethod.getCXXMethodDecl();
 
@@ -87,14 +89,14 @@ int main(int argc, char *argv[]) {
 						callgraph* tempClassMethodNode = new callgraph(*it_cxxmds);
 						Callgraph.insert(Callgraph.end(), tempClassMethodNode);
 						func_num++;
-						//std::cout << (*it_cxxmds)->getQualifiedNameAsString() << "\n";
+						//cout << (*it_cxxmds)->getQualifiedNameAsString() << "\n";
 					}
 				}
 
 				//添加类变量decl(类型为fieldDecl*)
 				ASTFieldDeclLoad loadClassVar;
-				std::vector<FieldDecl*> fds;
-				std::vector<FieldDecl*>::iterator it_fds;
+				vector<FieldDecl*> fds;
+				vector<FieldDecl*>::iterator it_fds;
 				loadClassVar.TraverseDecl(*rd_it);
 				fds = loadClassVar.getFieldDecl();
 				if (fds.size() > 0)
@@ -102,7 +104,7 @@ int main(int argc, char *argv[]) {
 					for (it_fds = fds.begin(); it_fds != fds.end(); it_fds++)
 					{
 						curClass->addVar(*it_fds);
-						//std::cout << (*it_fds)->getQualifiedNameAsString() << "\n";
+						//cout << (*it_fds)->getQualifiedNameAsString() << "\n";
 					}
 				}
 			}
@@ -111,13 +113,13 @@ int main(int argc, char *argv[]) {
 		//扫描AST获取vector::<functionDecl>
 		ASTFunctionLoad load;
 		load.HandleTranslationUnit(context);
-		std::vector<FunctionDecl*>  func=load.getFunctions();
+		vector<FunctionDecl*>  func=load.getFunctions();
 
-		 std::vector<FunctionDecl*>::iterator it_func_decl;
+		vector<FunctionDecl*>::iterator it_func_decl;
 
-		 //add cur->callee
-		 if (func.size() > 0)
-		 {
+		//add cur->callee
+		if (func.size() > 0)
+		{
 			 //为functionDecl添加callgraph
 			 callgraph* tempCallNode;
 			 for (it_func_decl = func.begin(); it_func_decl != func.end(); it_func_decl++)
@@ -136,11 +138,11 @@ int main(int argc, char *argv[]) {
 		 }
 	}
 
-	//std::vector<callgraph*>::iterator 
+	//vector<callgraph*>::iterator 
 	it_callgraph = Callgraph.begin();
 	it_call_last = Callgraph.end();
-	std::vector<CallExpr*>  callExpr;
-	std::vector<CallExpr*>::iterator it_call_expr;
+	vector<CallExpr*>  callExpr;
+	vector<CallExpr*>::iterator it_call_expr;
 	callgraph* tempCallgraph;
 	//为所有方法添加函数调用关系
 
@@ -171,7 +173,7 @@ int main(int argc, char *argv[]) {
 					continue;
 				}
 				(*it_callgraph)->addCallee(callee);
-				//std::cout << (*it_callgraph)->getCur()->getQualifiedNameAsString() << " -> " << (*it_call_expr)->getDirectCallee()->getQualifiedNameAsString() << std::endl;
+				//cout << (*it_callgraph)->getCur()->getQualifiedNameAsString() << " -> " << (*it_call_expr)->getDirectCallee()->getQualifiedNameAsString() << endl;
 				tempCallgraph = findById(Callgraph, callee->getQualifiedNameAsString());
 				if (tempCallgraph == NULL || tempCallgraph->is_caller((*it_callgraph)->getCur()))
 				{
@@ -218,10 +220,10 @@ int main(int argc, char *argv[]) {
 		//把中间变量加入Tmap
 		ASTVarDeclLoad loadVar;
 		loadVar.TraverseStmt(cur->getBody());
-		std::vector<VarDecl*> varList = loadVar.getVariables();
-		for (std::vector<VarDecl*>::iterator var_it = varList.begin(); var_it != varList.end(); var_it++)
+		vector<VarDecl*> varList = loadVar.getVariables();
+		for (vector<VarDecl*>::iterator var_it = varList.begin(); var_it != varList.end(); var_it++)
 		{
-			//std::cout << (*varIt)->getQualifiedNameAsString() << "\n";
+			//cout << (*varIt)->getQualifiedNameAsString() << "\n";
 			VarDecl* var_temp = *var_it;
 			(*it_callgraph)->addVar(var_temp);
 			CTmap* map = &(*it_callgraph)->getCTmap();
@@ -247,7 +249,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	//std::vector<FunctionDecl*> ringVector;
+	//vector<FunctionDecl*> ringVector;
 	//getRing(Callgraph, 0, ringVector);
 
 	//resetIfCheck(Callgraph);
@@ -259,7 +261,7 @@ int main(int argc, char *argv[]) {
 
 	cout << "class num：\t" << class_num << "\n";
 	cout << "function num：\t" << func_num << "\n";
-	std::vector<callgraph*>::iterator it3;
+	vector<callgraph*>::iterator it3;
 	it3 = Callgraph.begin();
 	for (; it3 != Callgraph.end(); it3++)
 	{
@@ -322,7 +324,7 @@ void print_file(const vector<string> files)
 
 bool is_syslib(string rd)
 {
-	if (regex_match(rd, regex("(std::)(.*)")))
+	if (regex_match(rd, regex("()(.*)")))
 		return true;
 	else if (regex_match(rd, regex("(stdext::)(.*)")))
 		return true;
