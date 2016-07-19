@@ -347,3 +347,8 @@ void callgraph::setReturn(Tainted_Attr* temp)
 {
 	returnVar->copy(temp);
 }
+
+void callgraph::set_if_check_cfg()
+{
+	if_check_cfg = true;
+}
