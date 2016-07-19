@@ -8,12 +8,11 @@ using namespace clang;
 using namespace std;
 using namespace llvm;
 
-class TCI
+typedef struct
 {
-public:
 	VarDecl* vd;
 	Stmt* stmt;
 	Tainted_Attr* re;
-};
+}TCI;
 
 #endif
