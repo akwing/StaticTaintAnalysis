@@ -13,8 +13,7 @@ class TCI
 public:
 	VarDecl* vd;
 	Stmt* stmt;
-	Tainted_Attr* be;
-	Tainted_Attr* af;
+	Tainted_Attr* re;
 };
 
 #endif
