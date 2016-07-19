@@ -92,3 +92,8 @@ bool if_find_class(vector<classTmap*>ClassTmap, CXXRecordDecl* rd)
 	}
 	return false;
 }
+
+CTmap* classTmap::getMap()
+{
+	return &map;
+}
