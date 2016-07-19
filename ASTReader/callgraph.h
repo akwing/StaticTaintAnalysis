@@ -46,6 +46,7 @@ public:
 	Tainted_Attr* getReturn();
 	void setReturn(Tainted_Attr* temp);
 	void set_if_check_cfg();
+	bool get_if_check_cfg();
 
 public:
 	std::map<clang::CFGBlock *, CFGInOut> block_io_map;
