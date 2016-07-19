@@ -352,3 +352,9 @@ void callgraph::set_if_check_cfg()
 {
 	if_check_cfg = true;
 }
+
+
+bool callgraph::get_if_check_cfg()
+{
+	return if_check_cfg;
+}
