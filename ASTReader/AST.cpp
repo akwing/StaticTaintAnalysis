@@ -7,17 +7,42 @@ void ASTFunctionLoad::HandleTranslationUnit(ASTContext &Context){
 
 bool ASTFunctionLoad::VisitFunctionDecl(FunctionDecl *FD) {
 	if (FD && FD->isThisDeclarationADefinition()) {
-		// Add C non-inline function 
-		if (!FD->isInlined()){
+		
+		if (dyn_cast<CXXMethodDecl>(FD) != nullptr)
+		{
+			functions.push_back(FD);
+		}
+			// Add C non-inline function 
+		 if (!FD->isInlined()){
 			functions.push_back(FD);
 		}
 	}
 	return true;
 }
 
-const std::vector<FunctionDecl *> &ASTFunctionLoad::getFunctions() const{
+const std::vector<FunctionDecl *> &ASTFunctionLoad::getFunctions() const
+{
 	return functions;
 }
+
+//ASTGlobalVarDeclLoad
+void ASTGlobalVarDeclLoad::HandleTranslationUnit(ASTContext &Context)
+{
+	TranslationUnitDecl *D = Context.getTranslationUnitDecl();
+	TraverseDecl(D);
+}
+
+bool ASTGlobalVarDeclLoad::VisitGlobalVarDecl(VarDecl *VD)
+{
+	globalVars.push_back(VD);
+	return true;
+}
+
+const std::vector<VarDecl *>& ASTGlobalVarDeclLoad::getGlobalVarDecls() const
+{
+	return globalVars;
+}
+
 
 //ASTCalledFunctionLoad
 bool ASTCalledFunctionLoad::VisitCallExpr(CallExpr *E) {
@@ -60,10 +85,10 @@ void ASTCXXRecordLoad::HandleTranslationUnit(ASTContext &Context){
 	TraverseDecl(D);
 }
 
-bool ASTCXXRecordLoad::VisitCXXRecordDecl(CXXRecordDecl *cxxrd) {
-	if (cxxrd && cxxrd->isThisDeclarationADefinition())
+bool ASTCXXRecordLoad::VisitCXXRecordDecl(CXXRecordDecl *rd) {
+	if (rd && rd->isThisDeclarationADefinition())
 	{
-		cxxrds.push_back(cxxrd);
+		cxxrds.push_back(rd);
 	}
 	return true;
 }
