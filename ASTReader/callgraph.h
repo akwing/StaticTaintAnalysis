@@ -52,6 +52,8 @@ public:
 	unsigned get_return_relation();
 	bool set_return_relation(int i);
 	int get_param_no(const VarDecl* vd);
+	void set_ASTContext(ASTContext* astcontext);
+	SourceManager& getSourceManager();
 
 public:
 	std::map<clang::CFGBlock *, CFGInOut> block_io_map;
@@ -77,6 +79,7 @@ private:
 	Tainted_Attr* return_tattr;
 	unsigned return_relation;
 	bool if_check_cfg;
+	ASTContext* astcontext;
 };
 
 callgraph* findById(std::vector<callgraph*> Callgraph, std::string id);
