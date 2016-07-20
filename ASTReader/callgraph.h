@@ -70,7 +70,7 @@ private:
 	std::vector<FunctionDecl*> callee;
 	std::unique_ptr<CFG> cfg;
 	int callerNum, calleeNum;
-	vector<VarDecl*> map_param;
+	vector<const VarDecl*> map_param;
 	CTmap* map;
 	int paramNum;
 	int varNum;
