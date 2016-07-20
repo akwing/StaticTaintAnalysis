@@ -46,9 +46,10 @@ public:
 };
 
 void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg);
-void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], int n);
+void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], const int n);
+void MsgOutput2Xml(callgraph *cg, Ttable *tt);
 
-void build_block_io_table(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *CFGexit, clang::CFGBlock *block, CTmap &tm);
+void BuildBlockIoTable(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *CFGexit, clang::CFGBlock *block, CTmap &tm);
 void printBlockMsg(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *block);
 void printiotable(map<clang::CFGBlock *, CFGInOut> &block_io_map);
 void output2xml(callgraph *cg, CTmap &tm);
