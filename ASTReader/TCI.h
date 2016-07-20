@@ -18,6 +18,7 @@ using namespace llvm;
 
 typedef struct
 {
+	ASTContext* astcontext;
 	int type;
 	VarDecl* vd;
 	Stmt* stmt;
