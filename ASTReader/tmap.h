@@ -1,6 +1,9 @@
 #ifndef _TMAP_H_
 #define _TMAP_H_
 
+class callgraph;
+class CTmap;
+
 #include <iostream>
 #include <map>
 #include <vector>
@@ -10,7 +13,9 @@
 #include "clang/Basic/FileSystemOptions.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 
-#define USECLASS
+//#include "Tout.h"
+
+//#define USECLASS
 
 #ifdef USECLASS
 #include "classTmap.h"
@@ -116,11 +121,14 @@ public:
 	CTmap(CTmap& b);
 	~CTmap();
 	void output();
+	//void output2xml(callgraph *cg);
 	void CopyMap(CTmap& b);
 	void insert(const VarDecl *p);
 	void del(const VarDecl *p);
 	Tainted_Attr *getAttr(const VarDecl *vd);
 	Tainted_Attr *getPointerAttr(const VarDecl *vd);
+	map<const VarDecl *, Tainted_Attr *>::iterator getmap();
+	map<const VarDecl *, Tainted_Attr *>::iterator getend();
 
 #ifdef USECLASS
 	classTmap *getClassTmap(const VarDecl *p);
