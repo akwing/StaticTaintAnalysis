@@ -297,6 +297,7 @@ CTmap& callgraph::getCTmap()
 void callgraph::addParam(VarDecl* vd)
 {
 	map->insert(vd);
+	map_param.push_back(vd);
 	paramNum++;
 }
 
@@ -396,4 +397,18 @@ bool callgraph::set_return_relation(int i)
 	}
 	return_relation += 1 << i;
 	return true;
+}
+
+//获取某个参数变量的参数编号
+int callgraph::get_param_no(VarDecl* vd)
+{
+	int i = 0;
+	while (1)
+	{
+		if (map_param[i] == vd)
+			return i;
+		i++;
+		if (i > paramNum)
+			return -1;
+	}
 }
