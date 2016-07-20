@@ -87,6 +87,7 @@ int main(int argc, char *argv[]) {
 						curClass->addMethod(*it_cxxmds);
 						callgraph* tempClassMethodNode = new callgraph(*it_cxxmds);
 						Callgraph.insert(Callgraph.end(), tempClassMethodNode);
+						tempClassMethodNode->set_ASTContext(&context);
 						func_num++;
 						//std::cout << (*it_cxxmds)->getQualifiedNameAsString() << "\n";
 					}
@@ -132,10 +133,12 @@ int main(int argc, char *argv[]) {
 					 continue;
 				 tempCallNode = new callgraph(*it_func_decl);
 				 Callgraph.push_back(tempCallNode);
+				 tempCallNode->set_ASTContext(&context);
 				 func_num++;
 			 }
 		 }
 	}
+	//astUnit over
 
 	//std::vector<callgraph*>::iterator 
 	it_callgraph = Callgraph.begin();
@@ -256,7 +259,7 @@ int main(int argc, char *argv[]) {
 
 	printCallGraph(Callgraph);
 
-	//printClassTmap(ClassTmap);
+	printClassTmap(ClassTmap);
 
 	cout << "class num：\t" << class_num << "\n";
 	cout << "function num：\t" << func_num << "\n";
@@ -271,6 +274,12 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	//输出到xml：李珺
+
+	//FunctionDecl* ddd=Callgraph[0]->getCur();
+	//Stmt* sss=ddd->getBody();
+	//ASTContext &aaaa=astUnit[1]->getASTContext();
+	
+	//string s(sss->getLocStart().printToString(aaaa.getSourceManager()));
 	return 0;
 }
 
