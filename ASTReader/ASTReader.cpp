@@ -152,11 +152,11 @@ int main(int argc, char *argv[]) {
 
 		//设置函数返回值类型
 		if (cur->getReturnType()->isPointerType())
-			(*it_callgraph)->getReturn()->setType(TYPE_POINTER);
+			(*it_callgraph)->get_return()->setType(TYPE_POINTER);
 	//	else if (cur->getReturnType()->isStructureOrClassType())
 		//	(*it_callgraph)->getReturn()->setType(TYPE_CLASS);
 		else
-			(*it_callgraph)->getReturn()->setType(TYPE_VARIABLE);
+			(*it_callgraph)->get_return()->setType(TYPE_VARIABLE);
 
 		ASTCallExprLoad load2;
 		load2.TraverseStmt(cur->getBody());
