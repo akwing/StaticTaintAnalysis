@@ -23,6 +23,7 @@ typedef struct
 	VarDecl* vd;
 	Stmt* stmt;
 	Tainted_Attr* re;
+	FunctionDecl* fd;
 }TCI;
 
 #endif
