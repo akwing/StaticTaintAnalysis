@@ -4,6 +4,7 @@
 //对函数的CFG进行迭代分析
 void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 {
+	cg->set_if_check_cfg();
 	clang::CFGBlock* CFGentry = &(cfg.getEntry()), *CFGexit = &(cfg.getExit());
 	clang::CFGBlock::pred_iterator pred_it, pred_end;
 
@@ -71,6 +72,17 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 
 	//将函数出口处的tmap填写到callgraph中
 	cg->getCTmap().CopyMap(*cg->block_io_map[&cfg.getExit()].GetOUT());
+	
+	outm = cg->block_io_map[&cfg.getExit()].GetOUT();
+	
+	output2xml(cg,*outm);
+	cout << 222 << endl;
+}
+
+//ta为参数的污染情况，n为ta数组中元素的个数
+void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], int n)
+{
+	
 }
 
 //为每个语句块创建INOUT污染表
@@ -120,4 +132,19 @@ void printiotable(map<clang::CFGBlock *, CFGInOut> &block_io_map)
 		it++;
 	}
 	cout << "==============================" << endl << endl;
+}
+
+//测试用 输出到李珺的表中
+void output2xml(callgraph *cg, CTmap &tm)
+{
+	Ttable tt;
+	map<const VarDecl *, Tainted_Attr *>::iterator it = tm.getmap(), it_end = tm.getend();
+	cout << 111 << endl;
+	while (it != it_end)
+	{
+		tt.insert(it->first, 1, cg->getCur()->getQualifiedNameAsString());
+		it++;
+	}
+	cout << 333 << endl;
+	tt.listout();
 }
