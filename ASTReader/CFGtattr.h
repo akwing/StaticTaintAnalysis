@@ -2,12 +2,14 @@
 #define _CFGTATTR_H_
 
 class callgraph;
+class CTmap;
 
 #include "tmap.h"
 #include "AST.h"
 #include "callgraph.h"
 #include "clang\Analysis\CFG.h"
 #include "TaintedStmtAnalysis.h"
+#include "Tout.h"
 
 using namespace std;
 using namespace clang;
@@ -44,7 +46,10 @@ public:
 };
 
 void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg);
+void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], int n);
+
 void build_block_io_table(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *CFGexit, clang::CFGBlock *block, CTmap &tm);
 void printBlockMsg(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *block);
 void printiotable(map<clang::CFGBlock *, CFGInOut> &block_io_map);
+void output2xml(callgraph *cg, CTmap &tm);
 #endif
