@@ -51,6 +51,7 @@ public:
 	bool get_if_check_cfg();
 	unsigned get_return_relation();
 	bool set_return_relation(int i);
+	int get_param_no(VarDecl* vd);
 
 public:
 	std::map<clang::CFGBlock *, CFGInOut> block_io_map;
@@ -69,6 +70,7 @@ private:
 	std::vector<FunctionDecl*> callee;
 	std::unique_ptr<CFG> cfg;
 	int callerNum, calleeNum;
+	vector<VarDecl*> map_param;
 	CTmap* map;
 	int paramNum;
 	int varNum;
