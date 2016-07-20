@@ -400,7 +400,7 @@ bool callgraph::set_return_relation(int i)
 }
 
 //获取某个参数变量的参数编号
-int callgraph::get_param_no(VarDecl* vd)
+int callgraph::get_param_no(const VarDecl* vd)
 {
 	int i = 0;
 	while (1)
