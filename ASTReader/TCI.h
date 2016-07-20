@@ -10,6 +10,7 @@ using namespace llvm;
 
 typedef struct
 {
+	int type;
 	VarDecl* vd;
 	Stmt* stmt;
 	Tainted_Attr* re;
