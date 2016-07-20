@@ -11,7 +11,9 @@ callgraph::callgraph(FunctionDecl* f1)
 	map = new CTmap();
 	paramNum = 0;
 	varNum = 0;
-	returnVar = new Tainted_Attr();
+	return_tattr = new Tainted_Attr();
+	if_check_cfg = false;
+	return_relation=0;
 }
 
 //calllgraph构造函数（带有一个callee）
@@ -27,7 +29,20 @@ callgraph::callgraph(FunctionDecl* f1, FunctionDecl* f2)
 	map = new CTmap();
 	paramNum = 0;
 	varNum = 0;
-	returnVar = new Tainted_Attr();
+	return_tattr = new Tainted_Attr();
+	if_check_cfg = false;
+	return_relation=0;
+}
+
+callgraph::~callgraph()
+{
+	block_io_map.clear();
+	TCI_list.clear();
+	TCI_list_call.clear();
+	caller.clear();
+	callee.clear();
+	delete(cfg.get());
+	map->~CTmap();
 }
 
 std::vector<FunctionDecl*>& callgraph::getCaller()
@@ -40,6 +55,7 @@ std::vector<FunctionDecl*>& callgraph::getCallee()
 	return callee;
 }
 
+//获得callgraph的所属函数的functiondecl
 FunctionDecl* callgraph::getCur()
 {
 	return cur;
@@ -78,7 +94,7 @@ void callgraph::delCallee(FunctionDecl* otherFD)
 		}
 }
 
-//函数名查找callgraph实例
+//根据函数名查找callgraph
 callgraph* findById(std::vector<callgraph*> Callgraph, std::string id)
 {
 	std::vector<callgraph*>::iterator it;
@@ -169,6 +185,7 @@ void getRing(std::vector<callgraph*>&Callgraph, int n, std::vector<FunctionDecl*
 	}
 }
 
+//打印callgraph相关信息
 void printCallGraph(std::vector<callgraph*> Callgraph)
 {
 	std::vector<callgraph*>::iterator it3;
@@ -300,6 +317,7 @@ int callgraph::getVarNum()
 	return varNum;
 }
 
+//检测某函数是否已经是本函数所调用的函数
 bool callgraph::is_caller(FunctionDecl* fd)
 {
 	int size = caller.size();
@@ -312,6 +330,8 @@ bool callgraph::is_caller(FunctionDecl* fd)
 	}
 	return false;
 }
+
+//检测某函数是否已经是调用本函数的函数
 bool callgraph::is_callee(FunctionDecl* fd)
 {
 	int size = callee.size();
@@ -325,6 +345,7 @@ bool callgraph::is_callee(FunctionDecl* fd)
 	return false;
 }
 
+//检测某函数是否已经生成了他的callgraph
 bool if_find_function(vector<callgraph*> Callgraph, FunctionDecl* fd)
 {
 	if (Callgraph.size() == 0)
@@ -338,23 +359,41 @@ bool if_find_function(vector<callgraph*> Callgraph, FunctionDecl* fd)
 	return false;
 }
 
-Tainted_Attr* callgraph::getReturn()
+
+Tainted_Attr* callgraph::get_return()
 {
-	return returnVar;
+	return return_tattr;
 }
 
-void callgraph::setReturn(Tainted_Attr* temp)
+void callgraph::set_return(Tainted_Attr* temp)
 {
-	returnVar->copy(temp);
+	return_tattr->copy(temp);
 }
 
+//将if_check_cfg设为已经检查true
 void callgraph::set_if_check_cfg()
 {
 	if_check_cfg = true;
 }
 
-
 bool callgraph::get_if_check_cfg()
 {
 	return if_check_cfg;
+}
+
+unsigned callgraph::get_return_relation()
+{
+	return return_relation;
+}
+
+//设置返回值与某一位相关
+bool callgraph::set_return_relation(int i)
+{
+	if (i > 32)
+	{
+		cout << "参数数目不超过32" << endl;
+		return false;
+	}
+	return_relation += 1 << i;
+	return true;
 }
