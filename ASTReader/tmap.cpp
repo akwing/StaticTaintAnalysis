@@ -173,6 +173,7 @@ void Tainted_Attr::output()
 	}
 }
 
+
 //复制p中的污染属性
 void Tainted_Attr::copy(Tainted_Attr *p)
 {
@@ -235,7 +236,7 @@ void Tainted_Attr::settemp(bool b)
 void Tainted_Attr::var_attr_set(e_tattr a, const VarDecl *vd)
 {
 	relation.clear();
-	if (type != TYPE_VARIABLE || type != TYPE_POINTER )
+	if (type != TYPE_VARIABLE && type != TYPE_POINTER )
 	{
 		cout << "warning: type != TYPE_VARIABLE" << endl;
 		return;
@@ -340,7 +341,7 @@ void Tainted_Attr::setType(VarDeclType tp)
 	}
 	else if (tp == TYPE_POINTER)
 	{
-		attr = UNTAINTED;
+		attr = TAINTED;
 		ptrAttr = NULL;
 		is_temp = false;
 	}
@@ -475,6 +476,16 @@ void CTmap::output()
 	}
 }
 
+map<const VarDecl *, Tainted_Attr *>::iterator CTmap::getmap()
+{
+	return tmap.begin();
+}
+
+map<const VarDecl *, Tainted_Attr *>::iterator CTmap::getend()
+{
+	return tmap.end();
+}
+
 //将当前map清空，并将b中的元素及污染属性整个拷贝到map中
 void CTmap::CopyMap(CTmap& b)
 {
@@ -510,7 +521,7 @@ void CTmap::CopyMap(CTmap& b)
 			else if (newattr->getistemp() == true)
 			{
 				ptrattr = new Tainted_Attr;
-				ptrattr->copy(t->getPointerAttr);
+				ptrattr->copy(t->getPointerAttr());
 			}
 			//是表t中的某个元素
 			else
@@ -843,7 +854,7 @@ bool CTmap::compareMap(CTmap &tm)
 	return true;
 }
 
-void f()
+/*void f()
 {
 	Tainted_Attr *ptr_p, *ptr_a;//分别存了p和a的污染状况
 
@@ -873,4 +884,4 @@ void f()
 	ptr_p->setType(TYPE_POINTER);
 	ptr_p->settemp(true);
 	
-}
+}*/
