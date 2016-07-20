@@ -412,3 +412,15 @@ int callgraph::get_param_no(const VarDecl* vd)
 			return -1;
 	}
 }
+
+//设置该函数所在ast文件的astcontext
+void callgraph::set_ASTContext(ASTContext* astcontext_temp)
+{
+	astcontext = astcontext_temp;
+}
+
+//获取该函数所在文件的sourceManager
+SourceManager& callgraph::getSourceManager()
+{
+	return astcontext->getSourceManager();
+}
