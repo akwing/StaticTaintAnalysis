@@ -11,7 +11,7 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 	CTmap *outm = NULL, *inm = NULL, preout;
 	
 
-	build_block_io_table(cg->block_io_map, CFGexit, CFGentry, tm);
+	BuildBlockIoTable(cg->block_io_map, CFGexit, CFGentry, tm);
 	cg->print_cfg();
 	//printiotable(block_io_map);
 
@@ -79,14 +79,129 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 	cout << 222 << endl;
 }
 
-//ta为参数的污染情况，n为ta数组中元素的个数
-void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], int n)
+//ta为参数的污染情况，n为ta数组中元素的个数，该函数用于修改第二个TCI表
+void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], const int n)
 {
+	TCI *temp;
+	Tainted_Attr *p;
+	Tainted_Attr *q;
+	vector<TCI *>::iterator it, it_end;
+	set<const VarDecl *>::iterator var_it, var_end;
+	set<const VarDecl *>::iterator var_it2, var_end2;
+
+	int k;
+
+	//g自身的TCI表添加到f中
+	it = callee->TCI_list.begin();
+	it_end = callee->TCI_list.end();
 	
+	while (it != it_end)
+	{
+		temp = new TCI;
+		temp->astcontext = (*it)->astcontext;
+		temp->type = (*it)->type;
+		temp->vd = (*it)->vd;
+		temp->stmt = (*it)->stmt;
+		temp->re = new Tainted_Attr;
+		temp->re->copy((*it)->re);
+		temp->fd = (*it)->fd;
+
+		caller->TCI_list_call.insert(caller->TCI_list_call.end(),temp);
+
+		it++;
+	}
+
+	//g的调用TCI表添加到f中
+	it = callee->TCI_list_call.begin();
+	it_end = callee->TCI_list_call.end();
+
+	while (it != it_end)
+	{
+		temp = new TCI;
+		temp->astcontext = (*it)->astcontext;
+		temp->type = (*it)->type;
+		temp->vd = (*it)->vd;
+		temp->stmt = (*it)->stmt;
+		temp->re = new Tainted_Attr;
+		temp->re->copy((*it)->re);
+		temp->fd = (*it)->fd;
+
+		caller->TCI_list_call.insert(caller->TCI_list_call.end(), temp);
+
+		it++;
+	}
+
+	//修改f的TCI_list_call中的内容
+	it = caller->TCI_list.begin();
+	it_end = caller->TCI_list.end();
+
+	while (it != it_end)
+	{
+		temp = (*it);
+		p = temp->re;
+		if (p != NULL)
+		{
+			var_it = p->getVariableRelation()->begin();
+			var_end = p->getVariableRelation()->end();
+			while (var_it != var_end)
+			{
+				k = callee->get_param_no((*var_it));
+				if (k >= 0 && k < n)
+				{
+					q = &ta[k];
+					if (q->getVariableAttr() == UNTAINTED)
+					{
+
+					}
+					//RELATED
+					else
+					{
+						var_it2 = q->getVariableRelation()->begin();
+						var_end2 = q->getVariableRelation()->end();
+						while (var_it2 != var_end2)
+						{
+							//将与当今函数的相关信息插入到表中
+							p->getVariableRelation()->insert(p->getVariableRelation()->end(), (*var_it2));
+							var_it2++;
+						}
+					}
+				}
+				var_it++;
+			}
+		}
+		it++;
+	}
+}
+
+//将需要输出的信息从callgraph放入Ttable供李珺输出
+void MsgOutput2Xml(callgraph *cg, Ttable &tt)
+{
+	SourceManager* sm = NULL;
+	ASTContext* astc = NULL;
+
+	vector<TCI *>::iterator it, it_end;
+	it = cg->TCI_list.begin();
+	it_end = cg->TCI_list.end();
+
+	while (it != it_end)
+	{
+		if (1)
+		{
+			sm = &(*it)->astcontext->getSourceManager();
+			(*it)->stmt->getLocStart().printToString(*sm);
+			tt.insert((*it)->vd, (*it)->stmt->getLocStart().printToString(*sm), (*it)->fd->getQualifiedNameAsString());
+		}
+		it++;
+	}
+
+	it = cg->TCI_list_call.begin();
+	it_end = cg->TCI_list_call.end();
+
+
 }
 
 //为每个语句块创建INOUT污染表
-void build_block_io_table(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *CFGexit, clang::CFGBlock *block, CTmap &tm)
+void BuildBlockIoTable(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *CFGexit, clang::CFGBlock *block, CTmap &tm)
 {
 	map<clang::CFGBlock *, CFGInOut>::iterator t = block_io_map.find(block);
 
@@ -104,7 +219,7 @@ void build_block_io_table(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang:
 	while (it != end)
 	{
 		//递归创建表
-		build_block_io_table(block_io_map, CFGexit, (*it).getReachableBlock(), tm);
+		BuildBlockIoTable(block_io_map, CFGexit, (*it).getReachableBlock(), tm);
 		it++;
 	}
 }
@@ -142,7 +257,7 @@ void output2xml(callgraph *cg, CTmap &tm)
 	cout << 111 << endl;
 	while (it != it_end)
 	{
-		tt.insert(it->first, 1, cg->getCur()->getQualifiedNameAsString());
+		//tt.insert(it->first, 1, cg->getCur()->getQualifiedNameAsString());
 		it++;
 	}
 	cout << 333 << endl;
