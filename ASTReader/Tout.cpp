@@ -1,9 +1,7 @@
 #include"Tout.h"
 Ttable::Ttable()
 {
-	head = new Node;
-	head->next = NULL;
-//	makeTnode(p, line);
+	head = NULL;
 }
 Ttable::~Ttable()
 {
@@ -68,40 +66,44 @@ bool Ttable::insert(const VarDecl*p, int line,string function)
 	}
 	return true;
 }
-Ttable::Node* Ttable::makeTnode(const VarDecl * p, int line, string function)
+Ttable::Node* Ttable::makeTnode(const VarDecl * p, string line, string function)
 {
-	/*
-	if (p->getType()->isPointerType())
-	{
-		if (p->getType()->getPointeeType()->isStructureOrClassType())
-		{
-			CXXRecordDecl* rd=p->getType()->getPointeeType()->getAsCXXRecordDecl();
-			std::cout <<"* "<< rd->getQualifiedNameAsString() << std::endl;
-		}
-		else
-		{
 
-		}
-	}
-	else
-	{
-		if (p->getType()->isIntegerType())
-		{
-			
-		}
-	}
-	*/
+	
 	Node * t = NULL;
-	t = exchange(p, line, function);
-	if (t == NULL)
-	{
-		cout << "error" << endl;
-	}
-	else
-	{
-		return t;
-	}
-
+//	t = exchange(p, line, function);
+	//将行号转换为char类型
+	Node * t = new Node;
+	t->line = new char[50];
+//	sprintf(t->line, "%d", line);
+	string str_line = line;
+	str_line.copy(t->line,str_line.length(),0);
+	*(t->line + str_line.length())= '\0';
+	cout<<t->line<<"t->line"<<endl;
+	//将名字转换为char类型
+	//cout << p->getQualifiedNameAsString().data()<<" 23333" << endl;
+	//cout <<(char*) p->getQualifiedNameAsString().data() << " 1111" << endl;
+	t->Tname = new char[50];
+	string test = (char*)p->getQualifiedNameAsString().data();
+	//t->Tname = (char*)test.data();
+	test.copy(t->Tname, test.length(), 0);
+	*(t->Tname + test.length()) = '\0';
+	cout << t->Tname << " t->Tname" << endl;
+	//t->Tname = (char*)p->getQualifiedNameAsString().data();
+	//cout <<t->Tname <<" 344444" << endl;
+	/*为什么不用getDeclName函数获取变量的名字呢,huozhe shi p->getNameAsString*/
+	//将函数名字转换为char
+	t->Tfunction = new char[100];
+	string funtion_name = function;
+	//cout << funtion_name << 111212313 << endl;
+	//t->Tfunction = (char*)funtion_name.data();
+	funtion_name.copy(t->Tfunction, funtion_name.length(), 0);
+	*(t->Tfunction + funtion_name.length())= '\0';
+	cout << t->Tfunction << " Tfunction" << endl;
+	//通过clang得到了该变量所在的文件名。
+	t->Tfile = (char*)p->getASTContext().getSourceManager().getFilename(p->getSourceRange().getBegin()).data();
+	return t;
+	
 }
 Ttable::Node* Ttable::exchange(const VarDecl * p, int line, string function)
 {
@@ -148,3 +150,4 @@ void Ttable::XMLout()
 		p = p->next;
 	}
 }
+
