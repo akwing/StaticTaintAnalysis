@@ -9,7 +9,7 @@ class CFGInOut;
 
 typedef enum
 {
-	common, inclass
+	common, inclass 
 }methodType;
 
 //函数调用关系图
@@ -17,8 +17,11 @@ class callgraph{
 public:
 	callgraph(FunctionDecl* f1);
 	callgraph(FunctionDecl* f1, FunctionDecl* f2);
-	std::vector<FunctionDecl*>& getCaller();		//调用cur
-	std::vector<FunctionDecl*>& getCallee();		//被cur调用
+	~callgraph();
+	//调用cur的函数
+	std::vector<FunctionDecl*>& getCaller();		
+	//被cur调用的函数
+	std::vector<FunctionDecl*>& getCallee();		
 	FunctionDecl* getCur();
 	int getCallerNum();
 	int getCalleeNum();
@@ -31,7 +34,6 @@ public:
 	CXXRecordDecl* getClass();
 	VarDecl* getRoot();
 	methodType getMethodType();
-	int ifCheck;
 	bool is_caller(FunctionDecl* fd);
 	bool is_callee(FunctionDecl* fd);
 
@@ -43,14 +45,18 @@ public:
 	void addVar(VarDecl* vd);
 	int getParamNum();
 	int getVarNum();
-	Tainted_Attr* getReturn();
-	void setReturn(Tainted_Attr* temp);
+	Tainted_Attr* get_return();
+	void set_return(Tainted_Attr* temp);
 	void set_if_check_cfg();
 	bool get_if_check_cfg();
+	unsigned get_return_relation();
+	bool set_return_relation(int i);
 
 public:
 	std::map<clang::CFGBlock *, CFGInOut> block_io_map;
-	vector<TCI*> TCI_list;
+	vector<TCI> TCI_list;
+	vector<TCI> TCI_list_call;
+	int ifCheck;
 
 private:
 	//方法的类型
@@ -66,7 +72,8 @@ private:
 	CTmap* map;
 	int paramNum;
 	int varNum;
-	Tainted_Attr* returnVar;
+	Tainted_Attr* return_tattr;
+	unsigned return_relation;
 	bool if_check_cfg;
 };
 
