@@ -51,7 +51,7 @@ public:
 	bool get_if_check_cfg();
 	unsigned get_return_relation();
 	bool set_return_relation(int i);
-	int get_param_no(VarDecl* vd);
+	int get_param_no(const VarDecl* vd);
 
 public:
 	std::map<clang::CFGBlock *, CFGInOut> block_io_map;
