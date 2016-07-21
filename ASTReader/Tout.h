@@ -27,7 +27,8 @@ public:
 	~Ttable();
 	void make_node(const VarDecl *p);
 //	bool insert(const VarDecl *p,  int line,string function);
-	bool insert(const VarDecl *p,string line,string function,int TYPE);
+//	bool insert(const VarDecl *p,string line,string function,int TYPE);
+	bool insert(string& line,string& function,int TYPE );
 	void outTtable();
 	bool CreateXmlFile(Node*p, char*file);
 	VarDecl * serach(const VarDecl * p);
@@ -38,8 +39,8 @@ private:
 	
 	Node * head;
 
-	Node* makeTnode(const VarDecl * p, string line, string function,int TYPE);
+	Node* makeTnode(string& line,string& function,int TYPE);
 
-	Node* exchange(const VarDecl * p, string line, string function,int TYPE);
+	Node* exchange(string& line,string& function,int TYPE);
 };
 
