@@ -8,7 +8,6 @@
 #include "clang/Basic/FileSystemOptions.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang\Analysis\CFG.h"
-#include "Tmap.h"
 #include "callgraph.h"
 
 using namespace clang;
@@ -19,5 +18,7 @@ bool checkblock(CFGBlock* cfgb, CTmap &out, callgraph* cg);
 int Stmt_analysis(const Stmt* stmt, CTmap &out, callgraph* cg);
 Tainted_Attr* Expr_analysis(const Expr* expr, CTmap &out, callgraph* cg);
 Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgraph* cg);
+Tainted_Attr* CallExpr_analysis(const Expr* expr, CTmap &out, callgraph* cg);
+Tainted_Attr* ArrayExpr_analysis(const Expr* expr, CTmap &out, callgraph* cg);
 
 #endif
