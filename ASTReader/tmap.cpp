@@ -12,11 +12,7 @@ Tainted_Attr::Tainted_Attr(){
 }
 
 //追加了类型参数的构造函数，如果是类请传入该类的classTmap
-Tainted_Attr::Tainted_Attr(VarDeclType mytype
-#ifdef USECLASS
-	, classTmap *ct
-#endif
-	)
+Tainted_Attr::Tainted_Attr(VarDeclType mytype, classTmap *ct)
 {
 	type = mytype;
 	if (mytype == TYPE_VARIABLE)
@@ -27,23 +23,17 @@ Tainted_Attr::Tainted_Attr(VarDeclType mytype
 	{
 		attr = UNTAINTED;
 		ptrAttr = NULL;
-#ifdef USECLASS
 		ptrClassDecl = NULL;
-#endif
 		is_temp = false;
 	}
-#ifdef USECLASS
 	else if (mytype == TYPE_CLASS)
 	{
 		ptrClassDecl = ct;
 	}
-#endif
 	else
 	{
 		ptrAttr = NULL;
-#ifdef USECLASS
 		ptrClassDecl = NULL;
-#endif
 		type = TYPE_UNKNOWN;
 	}
 }
@@ -63,11 +53,9 @@ Tainted_Attr::Tainted_Attr(Tainted_Attr& b)
 			it++;
 		}
 		break;
-#ifdef USECLASS
 	case TYPE_CLASS:
 		ptrClassDecl = b.ptrClassDecl;
 		break;
-#endif
 	case TYPE_POINTER:
 		is_temp = b.is_temp;
 		ptrAttr = b.ptrAttr;
@@ -97,14 +85,12 @@ Tainted_Attr::~Tainted_Attr()
 		attr = UNTAINTED;
 
 	}
-#ifdef USECLASS
-	if(type == TYPE_CLASS)
+	if (type == TYPE_CLASS)
 	{
 		ptrClassDecl->~classTmap();
 		delete ptrClassDecl;
 		ptrClassDecl = NULL;
 	}
-#endif
 }
 
 //获取所存储的污染属性的类型
@@ -125,13 +111,11 @@ set<const VarDecl *> *Tainted_Attr::getVariableRelation()
 	return &relation;
 }
 
-#ifdef USECLASS
 //获取类类型的污染属性的classTmap指针
 classTmap *Tainted_Attr::getClassDecl()
 {
 	return ptrClassDecl;
 }
-#endif
 
 //获得指针类型的污染属性所指向的污染属性
 Tainted_Attr *Tainted_Attr::getPointerAttr()
@@ -177,14 +161,12 @@ void Tainted_Attr::output()
 //复制p中的污染属性
 void Tainted_Attr::copy(Tainted_Attr *p)
 {
-	set<const VarDecl *>::iterator it = p->relation.begin(),it_end = p->relation.end();
-#ifdef USECLASS
+	set<const VarDecl *>::iterator it = p->relation.begin(), it_end = p->relation.end();
 	if (type == TYPE_CLASS)
 	{
 		ptrClassDecl->~classTmap();
 		delete ptrClassDecl;
 	}
-#endif
 	relation.clear();
 	type = p->type;
 	if (type == TYPE_VARIABLE)
@@ -192,7 +174,7 @@ void Tainted_Attr::copy(Tainted_Attr *p)
 		attr = p->attr;
 		if (attr == RELATED)
 		{
-			while(it != it_end)
+			while (it != it_end)
 			{
 				relation.insert(relation.end(), *it);
 				it++;
@@ -213,13 +195,10 @@ void Tainted_Attr::copy(Tainted_Attr *p)
 		}
 		is_temp = p->is_temp;
 	}
-
-#ifdef USECLASS
 	else if (type == TYPE_CLASS)
 	{
 		ptrClassDecl = new classTmap(*p->ptrClassDecl);
 	}
-#endif
 }
 
 void Tainted_Attr::settemp(bool b)
@@ -236,7 +215,7 @@ void Tainted_Attr::settemp(bool b)
 void Tainted_Attr::var_attr_set(e_tattr a, const VarDecl *vd)
 {
 	relation.clear();
-	if (type != TYPE_VARIABLE && type != TYPE_POINTER )
+	if (type != TYPE_VARIABLE && type != TYPE_POINTER)
 	{
 		cout << "warning: type != TYPE_VARIABLE" << endl;
 		return;
@@ -264,7 +243,6 @@ void Tainted_Attr::var_attr_set(e_tattr a, set<const VarDecl *> r)
 
 }
 
-#ifdef USECLASS
 //信息设置函数，如果当前的污染属性的类型不为CLASS，不会进行修改，并警告
 void Tainted_Attr::class_attr_set(e_tattr a, const VarDecl *vd, Expr *ptrExp)
 {
@@ -275,7 +253,6 @@ void Tainted_Attr::class_attr_set(e_tattr a, const VarDecl *vd, Expr *ptrExp)
 	}
 	//here to add
 }
-#endif
 
 //信息设置函数，如果当前的污染属性的类型不为POINTER，不会进行修改，并警告
 void Tainted_Attr::pointer_attr_set(e_tattr a, const VarDecl *vd)
@@ -289,7 +266,6 @@ void Tainted_Attr::pointer_attr_set(e_tattr a, const VarDecl *vd)
 	ptrAttr->var_attr_set(a, vd);
 }
 
-#ifdef USECLASS
 //将已生成好的类成员自身的表链接到属性上
 void Tainted_Attr::classmember_set(classTmap *ct)
 {
@@ -300,7 +276,6 @@ void Tainted_Attr::classmember_set(classTmap *ct)
 	}
 	ptrClassDecl = ct;
 }
-#endif
 
 //将当前污染属性指向pt指向的位置，如果当前污染属性的类型不为POINTER，不会进行修改，并警告
 void Tainted_Attr::setPointer(Tainted_Attr *pt)
@@ -317,11 +292,7 @@ void Tainted_Attr::setPointer(Tainted_Attr *pt)
 	}
 	while (1)
 	{
-		if (pt->type == TYPE_VARIABLE
-#ifdef USECLASS
-			|| pt->type == TYPE_CLASS
-#endif
-			)
+		if (pt->type == TYPE_VARIABLE|| pt->type == TYPE_CLASS)
 		{
 			copy(pt);
 			ptrAttr = pt;
@@ -345,12 +316,10 @@ void Tainted_Attr::setType(VarDeclType tp)
 		ptrAttr = NULL;
 		is_temp = false;
 	}
-#ifdef USECLASS
 	else if (tp == TYPE_CLASS)
 	{
 		ptrClassDecl = NULL;
 	}
-#endif
 	else
 	{
 		ptrAttr = NULL;
@@ -371,7 +340,7 @@ void Tainted_Attr::unionAttr(Tainted_Attr &a, Tainted_Attr &b)
 	type = a.type;
 	if (type == TYPE_VARIABLE)
 	{
-		if ( a.attr == TAINTED || b.attr == TAINTED )
+		if (a.attr == TAINTED || b.attr == TAINTED)
 		{
 			attr = TAINTED;
 			return;
@@ -441,21 +410,17 @@ CTmap::CTmap(CTmap& b)
 CTmap::~CTmap()
 {
 	Tainted_Attr *t;
-#ifdef USECLASS
 	classTmap *ct;
-#endif
 	map<const VarDecl *, Tainted_Attr *>::iterator iter = tmap.begin(), iter_end = tmap.end();
 	while (iter != iter_end)
 	{
 		t = iter->second;
-#ifdef USECLASS
 		if (t->getType() == TYPE_CLASS)
 		{
 			ct = t->getClassDecl();
-			ct->clearTmap();
+			ct->classClear();
 			delete ct;
 		}
-#endif
 		delete iter->second;
 		iter->second = NULL;
 		iter++;
@@ -493,7 +458,7 @@ void CTmap::CopyMap(CTmap& b)
 	Tainted_Attr *t = NULL, *newattr, *ptrattr;
 	const VarDecl *pdec = NULL;
 	map<const VarDecl *, Tainted_Attr *>::iterator it = b.tmap.begin(), it_end = b.tmap.end();
-	
+
 	while (it != it_end)
 	{
 		pdec = it->first;
@@ -516,7 +481,7 @@ void CTmap::CopyMap(CTmap& b)
 			ptrattr = newattr->getPointerAttr();
 			if (ptrattr == NULL)
 			{
-				
+
 			}
 			else if (newattr->getistemp() == true)
 			{
@@ -565,13 +530,11 @@ void CTmap::del(const VarDecl *p)
 {
 	Tainted_Attr *t = tmap[p];
 	//==class here to add how to delete
-#ifdef USECLASS
-	if(t->getType() == TYPE_CLASS)
+	if (t->getType() == TYPE_CLASS)
 	{
 		t->getClassDecl()->~classTmap();
 		delete t->getClassDecl();
 	}
-#endif
 	delete t;
 	tmap.erase(p);
 }
@@ -605,7 +568,6 @@ Tainted_Attr *CTmap::getPointerAttr(const VarDecl *vd)
 	}
 }
 
-#ifdef USECLASS
 //获取类的变量的自身的map
 classTmap *CTmap::getClassTmap(const VarDecl *p)
 {
@@ -624,7 +586,6 @@ classTmap *CTmap::getClassTmap(const VarDecl *p)
 		return tmap[p]->getClassDecl();
 	}
 }
-#endif
 
 //设置某个变量的属性（变量、指针、类）
 void CTmap::setType(const VarDecl *p, VarDeclType tp)
@@ -716,7 +677,6 @@ void CTmap::ptr_attr_set(const VarDecl *p, e_tattr e, const VarDecl *vd)
 	}
 }
 
-#ifdef USECLASS
 //将classTmap的指针链接到VarDecl的条目上
 void CTmap::classmember_attr_set(const VarDecl *p, classTmap *ct)
 {
@@ -746,7 +706,6 @@ void CTmap::classmember_attr_set(const VarDecl *p, classTmap *ct)
 //设置污染属性
 void CTmap::classmember_attr_set(const VarDecl *p, e_tattr e, const VarDecl *r, Expr *ptrExpr)
 {}
-#endif
 
 //将两个map中的污染属性合并
 void CTmap::unionMap(CTmap &b)
@@ -766,20 +725,16 @@ void CTmap::unionMap(CTmap &b)
 void CTmap::clear()
 {
 	Tainted_Attr *t;
-#ifdef USECLASS
 	classTmap *ct;
-#endif
 	map<const VarDecl *, Tainted_Attr *>::iterator iter = tmap.begin(), iter_end = tmap.end();
 	while (iter != iter_end)
 	{
 		t = iter->second;
-#ifdef USECLASS
 		if (t->getType() == TYPE_CLASS)
 		{
 			ct = t->getClassDecl();
-			ct->clearTmap();
+			ct->classClear();
 		}
-#endif
 		delete iter->second;
 		iter->second = NULL;
 		iter++;
@@ -856,32 +811,204 @@ bool CTmap::compareMap(CTmap &tm)
 
 /*void f()
 {
-	Tainted_Attr *ptr_p, *ptr_a;//分别存了p和a的污染状况
+Tainted_Attr *ptr_p, *ptr_a;//分别存了p和a的污染状况
+//p = &a;(p为指针，a为一般变量)
 
-	//p = &a;(p为指针，a为一般变量)
-	
-	ptr_p->~Tainted_Attr();
-	ptr_p->setType(TYPE_POINTER);
-	ptr_p->setPointer(ptr_a);	//会自动将p的污染属性设置为与a相同，且指针会指向a的条目
-	
-	
-	//p = p + 1;(指针指向了下一个位置)
-	if (ptr_p->getistemp() == false)//不是动态创建的变量
-		ptr_p->setPointer(NULL);//将指针从本来指向的内存移开
-	else
-		ptr_p->settemp(false);
+ptr_p->~Tainted_Attr();
+ptr_p->setType(TYPE_POINTER);
+ptr_p->setPointer(ptr_a);	//会自动将p的污染属性设置为与a相同，且指针会指向a的条目
 
-	
-	//a = (*p) + b;(a，b为变量，p为指针)
-	ptr_p->getPointerAttr(); //取得指向的变量的污染条目，之后用这个条目与b的取并
 
-	//*p = a + b;
-	ptr_p->getPointerAttr(); //取得指向的变量的污染条目，之后操作与一般变量相同
+//p = p + 1;(指针指向了下一个位置)
+if (ptr_p->getistemp() == false)//不是动态创建的变量
+ptr_p->setPointer(NULL);//将指针从本来指向的内存移开
+else
+ptr_p->settemp(false);
 
-	//p = new int;(例如p指向了动态变量)
-	Tainted_Attr *temp = new Tainted_Attr();
-	ptr_p->~Tainted_Attr();
-	ptr_p->setType(TYPE_POINTER);
-	ptr_p->settemp(true);
-	
+//a = (*p) + b;(a，b为变量，p为指针)
+ptr_p->getPointerAttr(); //取得指向的变量的污染条目，之后用这个条目与b的取并
+//*p = a + b;
+ptr_p->getPointerAttr(); //取得指向的变量的污染条目，之后操作与一般变量相同
+//p = new int;(例如p指向了动态变量)
+Tainted_Attr *temp = new Tainted_Attr();
+ptr_p->~Tainted_Attr();
+ptr_p->setType(TYPE_POINTER);
+ptr_p->settemp(true);
+
 }*/
+
+
+
+//classTmap.cpp
+classTmap::classTmap()
+{
+	methodNum = 0;
+	varNum = 0;
+	rd = NULL;
+}
+void classTmap::setCXXRecordDecl(CXXRecordDecl* cxxrd)
+{
+	rd = cxxrd;
+}
+void classTmap::addMethod(CXXMethodDecl* md)
+{
+	cxxmds.push_back(md);
+	methodNum++;
+}
+void classTmap::addVar(FieldDecl* fd, VarDeclType evt)
+{
+	fds.push_back(fd);
+	map.insert((VarDecl*)fd);
+	map.setType((VarDecl*)fd, evt);
+	CXXRecordDecl* t;
+	classTmap* ct;
+	classTmap* new_ct;
+	switch (evt)
+	{
+	case TYPE_POINTER:break;
+	case TYPE_VARIABLE:
+		map.var_attr_set((VarDecl*)fd, UNTAINTED, NULL);
+		break;
+	case TYPE_CLASS:
+		t = fd->getType()->getAsCXXRecordDecl();
+		ct = getClassTmap(t);
+		new_ct = new classTmap();
+		new_ct->classCopy(ct);
+		map.classmember_attr_set((VarDecl*)fd, new_ct);
+		break;
+	default:break;
+	}
+	varNum++;
+}
+const vector<CXXMethodDecl*>& classTmap::get_cxxmds()
+{
+	return cxxmds;
+}
+const vector<FieldDecl*>& classTmap::get_fds()
+{
+	return fds;
+}
+CXXRecordDecl* classTmap::get_cxxrd()const
+{
+	return rd;
+}
+int classTmap::getMethodNum()
+{
+	return methodNum;
+}
+int classTmap::getVarNum()
+{
+	return varNum;
+}
+
+void printClassTmap(vector<classTmap*> CT)
+{
+	vector<classTmap*>::iterator it_ct = CT.begin(), it_ct_end = CT.end();
+	vector<CXXMethodDecl*>::iterator it_cxxmd;
+	vector<CXXMethodDecl*> cxxmds;
+	int methodNum;
+	vector<FieldDecl*>::iterator it_fd;
+	vector<FieldDecl*>fds;
+	int varNum;
+	for (; it_ct != it_ct_end; it_ct++)
+	{
+		cxxmds = (*it_ct)->get_cxxmds();
+		fds = (*it_ct)->get_fds();
+		cout << (*it_ct)->get_cxxrd()->getQualifiedNameAsString() << "\n";
+		it_cxxmd = cxxmds.begin();
+		methodNum = (*it_ct)->getMethodNum();
+		it_fd = fds.begin();
+		varNum = (*it_ct)->getVarNum();
+		cout << "\tVar:\n";
+		if (fds.size() > 0)
+		{
+			for (int i = 0; i < varNum; i++)
+			{
+				cout << "\t\t" << (*it_fd)->getQualifiedNameAsString() << "\n";
+				it_fd++;
+			}
+		}
+		if (cxxmds.size() > 0)
+		{
+			cout << "\tMethod:\n";
+			for (int i = 0; i < methodNum; i++)
+			{
+				cout << "\t\t" << (*it_cxxmd)->getQualifiedNameAsString() << "\n";
+				it_cxxmd++;
+			}
+		}
+	}
+}
+
+bool if_find_class(vector<classTmap*>ClassTmap, CXXRecordDecl* rd)
+{
+	if (ClassTmap.size() == 0)
+		return false;
+	vector<classTmap*>::iterator it = ClassTmap.begin(), it_end = ClassTmap.end();
+	for (; it != it_end; it++)
+	{
+		if ((*it)->get_cxxrd() == rd)
+			return true;
+	}
+	return false;
+}
+
+CTmap* classTmap::getMap()
+{
+	return &map;
+}
+
+void classTmap::classCopy(classTmap* temp)
+{
+	rd = temp->rd;
+
+	cxxmds.clear();
+	vector<CXXMethodDecl*>::iterator it_cxxmd = temp->cxxmds.begin(),
+		it_cxxmd_end = temp->cxxmds.end();
+	for (; it_cxxmd != it_cxxmd_end; it_cxxmd++)
+	{
+		cxxmds.push_back((*it_cxxmd));
+	}
+
+	fds.clear();
+	vector<FieldDecl*>::iterator it_fd = temp->fds.begin(),
+		it_fd_end = temp->fds.end();
+	for (; it_fd != it_fd_end; it_fd++)
+	{
+		fds.push_back((*it_fd));
+	}
+
+	map.CopyMap(temp->map);
+
+	methodNum = temp->methodNum;
+	varNum = temp->varNum;
+
+}
+
+void classTmap::classUnion(classTmap* m, classTmap* a, classTmap* b)
+{
+	if (a->rd != b->rd)
+		cout << "不允许不同的classTmap的合并" << endl;
+
+	//classTmap map_re;
+	m->classCopy(a);
+	m->map.unionMap(b->map);
+}
+
+void classTmap::classClear()
+{
+	cxxmds.clear();
+	fds.clear();
+	map.clear();
+}
+
+classTmap* getClassTmap(CXXRecordDecl* rd)
+{
+	int size = ClassTmap.size();
+	for (int i = 0; i < size; i++)
+	{
+		if (ClassTmap[i]->get_cxxrd() == rd)
+			return ClassTmap[i];
+	}
+	return NULL;
+}
