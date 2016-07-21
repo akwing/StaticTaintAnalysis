@@ -51,9 +51,9 @@ void Ttable::outTtable()
 {
 	
 }
-bool Ttable::insert(const VarDecl*p, string line,string function,int TYPE )
+bool Ttable::insert(string&  line, string& function, int TYPE )
 {
-	Node *t = makeTnode(p, line,function,TYPE);
+	Node *t = makeTnode(line,function,TYPE);
 	if (head == NULL)
 	{
 		head = t;
@@ -66,17 +66,23 @@ bool Ttable::insert(const VarDecl*p, string line,string function,int TYPE )
 	}
 	return true;
 }
-Ttable::Node* Ttable::makeTnode(const VarDecl * p, string line, string function,int TYPE)
+Ttable::Node* Ttable::makeTnode(string&  line, string& function, int TYPE)
 {
 
-	
+	nt num = line.find(':', 2);
+	string test_line;
+	test_line.insert(0, line, num + 1, 1);
+	cout << test_line << endl;
+	string test_file;
+	test_file.insert(0, line, 0, num);
+	cout << test_file << endl;
 //	Node * t = NULL;
 //	t = exchange(p, line, function);
 	//将行号转换为char类型
 	Node * t = new Node;
 	t->line = new char[50];
 //	sprintf(t->line, "%d", line);
-	string str_line = line;
+	string str_line = test_line;
 	str_line.copy(t->line,str_line.length(),0);
 	*(t->line + str_line.length())= '\0';
 	cout<<t->line<<"t->line"<<endl;
@@ -84,11 +90,12 @@ Ttable::Node* Ttable::makeTnode(const VarDecl * p, string line, string function,
 	//cout << p->getQualifiedNameAsString().data()<<" 23333" << endl;
 	//cout <<(char*) p->getQualifiedNameAsString().data() << " 1111" << endl;
 	t->Tname = new char[50];
-	string test = (char*)p->getQualifiedNameAsString().data();
+	t->Tname = NULL;
+//	string test = (char*)p->getQualifiedNameAsString().data();
 	//t->Tname = (char*)test.data();
-	test.copy(t->Tname, test.length(), 0);
-	*(t->Tname + test.length()) = '\0';
-	cout << t->Tname << " t->Tname" << endl;
+//	test.copy(t->Tname, test.length(), 0);
+//	*(t->Tname + test.length()) = '\0';
+//	cout << t->Tname << " t->Tname" << endl;
 	//t->Tname = (char*)p->getQualifiedNameAsString().data();
 	//cout <<t->Tname <<" 344444" << endl;
 	/*为什么不用getDeclName函数获取变量的名字呢,huozhe shi p->getNameAsString*/
@@ -101,7 +108,14 @@ Ttable::Node* Ttable::makeTnode(const VarDecl * p, string line, string function,
 	*(t->Tfunction + funtion_name.length())= '\0';
 	cout << t->Tfunction << " Tfunction" << endl;
 	//通过clang得到了该变量所在的文件名。
-	t->Tfile = (char*)p->getASTContext().getSourceManager().getFilename(p->getSourceRange().getBegin()).data();
+//	t->Tfile = (char*)p->getASTContext().getSourceManager().getFilename(p->getSourceRange().getBegin()).data();
+	t->Tfile = new char[500];
+	string Tfile_name = test_file;
+	Tfile_name.copy(t->Tfile, Tfile_name.length(), 0);
+	*(t->Tfile + Tfile_name.length()) = '\0';
+	cout << t->Tfile << " Tfile" << endl;
+	
+	
 	t->TYPE = new char[100];
 	if (TYPE == 1)
 	{
