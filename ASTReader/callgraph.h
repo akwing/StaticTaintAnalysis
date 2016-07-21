@@ -3,9 +3,15 @@
 
 class CFGInOut;
 
+#include<vector>
 #include "AST.h"
 #include "CFGtattr.h"
 #include "TCI.h"
+
+using namespace std;
+using namespace clang;
+
+extern vector<callgraph*> Callgraph;
 
 typedef enum
 {
@@ -58,8 +64,8 @@ public:
 
 public:
 	std::map<clang::CFGBlock *, CFGInOut> block_io_map;
-	vector<TCI*> TCI_list;
-	vector<TCI*> TCI_list_call;
+	vector<TCI> TCI_list;
+	vector<TCI> TCI_list_call;
 	int ifCheck;
 
 private:
@@ -87,7 +93,7 @@ callgraph* findById(std::vector<callgraph*> Callgraph, std::string id);
 void ifcheck(std::vector<callgraph*> cg, callgraph* t);
 void resetIfCheck(std::vector<callgraph*>Callgraph);
 void getRing(std::vector<callgraph*>& Callgraph, int n, std::vector<FunctionDecl*>& ringVector);
-void printCallGraph(std::vector<callgraph*> Callgraph);
+void printCallGraph();
 
 bool if_find_function(std::vector<callgraph*> Callgraph,FunctionDecl* fd);
 #endif
