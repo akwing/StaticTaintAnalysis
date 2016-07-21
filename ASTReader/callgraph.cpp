@@ -107,9 +107,10 @@ callgraph* findById(std::vector<callgraph*> Callgraph, std::string id)
 }
 
 //查找callgraph中的环，对其进行除环操作
-void ifcheck(std::vector<callgraph*> cg, callgraph* t)
+void ringCheck(std::vector<callgraph*> cg, callgraph* t,std::vector<callgraph*> ring)
 {
 	t->ifCheck = -1;
+	ring.push_back(t);
 	std::vector<FunctionDecl*>::iterator it_callee;
 	std::vector<FunctionDecl*> callee = t->getCallee();
 	for (it_callee = callee.begin(); it_callee != callee.end(); it_callee++)
@@ -120,14 +121,25 @@ void ifcheck(std::vector<callgraph*> cg, callgraph* t)
 		{
 			if (tempc->ifCheck == -1)
 			{
+				//输出环信息到xml
+				std::vector<XYJ_table*> ring_table;
+				std::vector<callgraph*>::iterator it_ring=ring.begin();
+				for (; it_ring != ring.end(); it_ring++)
+				{
+					XYJ_table* new_table = new XYJ_table((*it_ring)->getCur(), (*it_ring)->getASTContext());
+					ring_table.push_back(new_table);
+					//t_table.insert(string(""), string(""), 6);
+				}
+				xyj_table.push_back(&ring_table);
 				t->delCallee(tempt);
 				it_callee--;//=================
 			}
 			else
-				ifcheck(cg, tempc);
+				ringCheck(cg, tempc,ring);
 		}
 	}
 	t->ifCheck = 1;
+	ring.pop_back();
 }
 
 //重置ifcheck
