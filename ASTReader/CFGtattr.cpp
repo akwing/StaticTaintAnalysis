@@ -23,7 +23,7 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 
 		//为每个block计算其新的out
 		cout << "******************************" << endl;
-		cout << "CFG check " << i << " start........." << endl;
+		cout << cg->getCur()->getQualifiedNameAsString() << ": CFG check " << i << " start........." << endl;
 		for (map<clang::CFGBlock *, CFGInOut>::reverse_iterator r_iter = cg->block_io_map.rbegin(), r_end = cg->block_io_map.rend(); r_iter != r_end; r_iter++)
 		{
 			//计算新的in，即对block的前驱的out求并，作为该block的in
@@ -53,26 +53,27 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 			
 			//checkblock, modify changed
 			checkblock(r_iter->first, *outm,cg);
-			
+			checkTerminator(*r_iter->first, *outm, cg);
+
 			if (outm->compareMap(preout) == false)
 			{
 				changed = true;
-				printBlockMsg(cg->block_io_map,r_iter->first);
+				//printBlockMsg(cg->block_io_map,r_iter->first);
 			}
 			
 		}
 
 		//迭代至所有block的OUT都不发生改变，跳出循环
-		cout << "CFG check " << i << " end." << endl;
+		cout<<cg->getCur()->getQualifiedNameAsString() << ": CFG check " << i << " end." << endl;
 		cout << "******************************" << endl;
 		if (changed == false)
 			break;
-		int a;
-		cin >> a;
+		cg->TCI_list.clear();
+		cg->TCI_list_call.clear();
 		i++;
 	}
 	//here to add output
-	printiotable(cg->block_io_map);
+	//printiotable(cg->block_io_map);
 
 	//将函数出口处的tmap填写到callgraph中
 	cg->getCTmap().CopyMap(*cg->block_io_map[&cfg.getExit()].GetOUT());
@@ -80,7 +81,25 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 	outm = cg->block_io_map[&cfg.getExit()].GetOUT();
 	
 	//output2xml(cg,*outm);
-	//cout << 222 << endl;
+	
+}
+
+void checkTerminator(CFGBlock &cfgb, CTmap &out, callgraph *cg)
+{
+	unsigned int n = cfgb.getBlockID();
+	clang::CFGBlock::pred_iterator pred_it, pred_end;
+	pred_it = cfgb.pred_begin();
+	pred_end = cfgb.pred_end();
+	
+	while (pred_it != pred_end)
+	{
+		if ((pred_it->getReachableBlock()->getBlockID()) <= n)
+		{
+			checkCond(cfgb.getTerminatorCondition(), out, cg);
+		}
+		pred_it++;
+	}
+
 }
 
 //ta为参数的污染情况，n为ta数组中元素的个数，该函数用于修改第二个TCI表
@@ -181,7 +200,6 @@ void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], co
 void MsgOutput2Xml(callgraph *cg, Ttable &tt)
 {
 	SourceManager* sm = NULL;
-	ASTContext* astc = NULL;
 	Tainted_Attr* ta;
 
 	vector<TCI *>::iterator it, it_end;
@@ -189,7 +207,6 @@ void MsgOutput2Xml(callgraph *cg, Ttable &tt)
 	it_end = cg->TCI_list.end();
 
 	set<const VarDecl *>::iterator var_it, var_end;
-
 	while (it != it_end)
 	{
 		ta = (*it)->re;
@@ -198,17 +215,17 @@ void MsgOutput2Xml(callgraph *cg, Ttable &tt)
 		while (var_it != var_end)
 		{
 			//和main的一个参数相关
-			if (cg->get_param_no(*var_it) > 0)
+			if (cg->get_param_no(*var_it) >= 0)
 			{
 				sm = &(*it)->astcontext->getSourceManager();
-				tt.insert((*it)->vd, (*it)->expr->getLocStart().printToString(*sm), (*it)->fd->getQualifiedNameAsString(), (*it)->type);
+				cout << (*it)->expr->getLocStart().printToString(*sm) << endl;
+				//tt.insert((*it)->vd, (*it)->expr->getLocStart().printToString(*sm), (*it)->fd->getQualifiedNameAsString(), (*it)->type);
 				break;
 			}
 			var_it++;
 		}
 		it++;
 	}
-
 	it = cg->TCI_list_call.begin();
 	it_end = cg->TCI_list_call.end();
 
@@ -220,17 +237,16 @@ void MsgOutput2Xml(callgraph *cg, Ttable &tt)
 		while (var_it != var_end)
 		{
 			//和main的一个参数相关
-			if (cg->get_param_no(*var_it) > 0)
+			if (cg->get_param_no(*var_it) >= 0)
 			{
 				sm = &(*it)->astcontext->getSourceManager();
-				tt.insert((*it)->vd, (*it)->expr->getLocStart().printToString(*sm), (*it)->fd->getQualifiedNameAsString(), (*it)->type);
+				//tt.insert((*it)->vd, (*it)->expr->getLocStart().printToString(*sm), (*it)->fd->getQualifiedNameAsString(), (*it)->type);
 				break;
 			}
 			var_it++;
 		}
 		it++;
 	}
-
 }
 
 //为每个语句块创建INOUT污染表
