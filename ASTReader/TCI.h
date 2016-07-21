@@ -21,7 +21,7 @@ typedef struct
 	ASTContext* astcontext;
 	int type;
 	VarDecl* vd;
-	Stmt* stmt;
+	SourceLocation* sl;
 	Tainted_Attr* re;
 	FunctionDecl* fd;
 }TCI;
