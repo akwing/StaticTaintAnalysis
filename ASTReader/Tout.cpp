@@ -51,9 +51,9 @@ void Ttable::outTtable()
 {
 	
 }
-bool Ttable::insert(const VarDecl*p, string line,string function)
+bool Ttable::insert(const VarDecl*p, string line,string function,int TYPE )
 {
-	Node *t = makeTnode(p, line,function);
+	Node *t = makeTnode(p, line,function,TYPE);
 	if (head == NULL)
 	{
 		head = t;
@@ -66,7 +66,7 @@ bool Ttable::insert(const VarDecl*p, string line,string function)
 	}
 	return true;
 }
-Ttable::Node* Ttable::makeTnode(const VarDecl * p, string line, string function)
+Ttable::Node* Ttable::makeTnode(const VarDecl * p, string line, string function,int TYPE)
 {
 
 	
@@ -102,10 +102,48 @@ Ttable::Node* Ttable::makeTnode(const VarDecl * p, string line, string function)
 	cout << t->Tfunction << " Tfunction" << endl;
 	//通过clang得到了该变量所在的文件名。
 	t->Tfile = (char*)p->getASTContext().getSourceManager().getFilename(p->getSourceRange().getBegin()).data();
+	t->TYPE = new char[100];
+	if (TYPE == 1)
+	{
+		string Type = "TTYPE_ARRAY";
+		Type.copy(t->TYPE, Type.length(), 0);
+		*(t->TYPE + Type.length()) = '\0';
+	}
+	else if (TYPE == 2)
+	{
+		string Type = "TTYPE_DIV_MOD";
+		Type.copy(t->TYPE, Type.length(), 0);
+		*(t->TYPE + Type.length()) = '\0';
+	}
+	else if (TYPE==3)
+	{
+		string Type = "TTYPE_LOOP_BOUND";
+		Type.copy(t->TYPE, Type.length(), 0);
+		*(t->TYPE + Type.length()) = '\0';
+	}
+	else if (TYPE == 4)
+	{
+		string Type = "TTYPE_MEM";
+		Type.copy(t->TYPE, Type.length(), 0);
+		*(t->TYPE + Type.length()) = '\0';
+	}
+	else if (TYPE==5)
+	{
+		string Type = "TTYPE_POINTER_NULL_SET";
+		Type.copy(t->TYPE, Type.length(), 0);
+		*(t->TYPE + Type.length()) = '\0';
+	}
+	else if (TYPE == 6)
+	{
+		string Type = "TTYPE_RECURSIVE_CALL";
+		Type.copy(t->TYPE, Type.length(), 0);
+		*(t->TYPE + Type.length()) = '\0';
+	}
+
 	return t;
 	
 }
-Ttable::Node* Ttable::exchange(const VarDecl * p, string line, string function)
+Ttable::Node* Ttable::exchange(const VarDecl * p, string line, string function,int TYPE)
 {
 	//将行号转换为char类型
 	Node * t = new Node;
