@@ -6,18 +6,19 @@
 
 #include "AST.h"
 #include "callgraph.h"
-#include "classTmap.h"
+//#include "classTmap.h"
+#include"tmap.h"
 #include "CFGtattr.h"
 
 using namespace std;
 
-vector<callgraph*> Callgraph;
-vector<classTmap*> ClassTmap;
-vector<unique_ptr<ASTUnit>> astUnit;
-vector<string> files;
+std::vector<callgraph*> Callgraph;
+std::vector<classTmap*> ClassTmap;
+std::vector<unique_ptr<ASTUnit>> astUnit;
+std::vector<string> files;
 
-void get_file(string path,vector<string>& all_file);
-void print_file(const vector<string> files);
+void get_file(string path,std::vector<string>& all_file);
+void print_file(const std::vector<string> files);
 bool is_syslib(string rd);
 
 int main(int argc, char *argv[]) {
@@ -51,11 +52,11 @@ int main(int argc, char *argv[]) {
 		//扫描AST获取类定义
 		ASTCXXRecordLoad loadClass;
 		loadClass.HandleTranslationUnit(context);
-		vector<CXXRecordDecl*>   cxxrds = loadClass.getClassDecl();
+		std::vector<CXXRecordDecl*>   cxxrds = loadClass.getClassDecl();
 
 		if (cxxrds.size() > 0)//类的数目判断
 		{
-			vector<CXXRecordDecl*>::iterator rd_it, rd_it_end = cxxrds.end();
+			std::vector<CXXRecordDecl*>::iterator rd_it, rd_it_end = cxxrds.end();
 			for (rd_it = cxxrds.begin(); rd_it != rd_it_end; rd_it++)
 			{
 				//是否为库类
@@ -90,6 +91,7 @@ int main(int argc, char *argv[]) {
 						tempClassMethodNode->set_ASTContext(&context);
 						func_num++;
 						//std::cout << (*it_cxxmds)->getQualifiedNameAsString() << "\n";
+
 					}
 				}
 
@@ -103,7 +105,20 @@ int main(int argc, char *argv[]) {
 				{
 					for (it_fds = fds.begin(); it_fds != fds.end(); it_fds++)
 					{
-						curClass->addVar(*it_fds);
+						FieldDecl* fd_temp = *it_fds;
+						if (fd_temp->getType()->isPointerType())
+						{
+							curClass->addVar(fd_temp,TYPE_POINTER);
+							//curClass->getMap()->insert(); TYPE_POINTER;
+						}
+						else if (fd_temp->getType()->isStructureOrClassType())
+						{
+							curClass->addVar(fd_temp,TYPE_CLASS);
+						}
+						else
+						{
+							curClass->addVar(fd_temp,TYPE_VARIABLE);
+						}
 						//std::cout << (*it_fds)->getQualifiedNameAsString() << "\n";
 					}
 				}
@@ -205,12 +220,15 @@ int main(int argc, char *argv[]) {
 					map->setType(parm_temp, TYPE_POINTER);
 					//map->ptr_attr_set(parm_temp, UNTAINTED, NULL);
 				}
-			/*	else if (parm_temp->getType()->isStructureOrClassType())
+				else if (parm_temp->getType()->isStructureOrClassType())
 				{
 					map->setType(parm_temp, TYPE_CLASS);
-					map->var_attr_set(parm_temp, RELATED, parm_temp);
+					CXXRecordDecl* t = parm_temp->getType()->getAsCXXRecordDecl();
+					classTmap* ct = getClassTmap(t);
+					classTmap* new_ct = new classTmap();
+					new_ct->classCopy(ct);
+					map->classmember_attr_set(parm_temp,new_ct);
 				}
-				*/
 				else
 				{
 					map->setType(parm_temp, TYPE_VARIABLE);
@@ -236,13 +254,15 @@ int main(int argc, char *argv[]) {
 				map->setType(var_temp, TYPE_POINTER);
 			//	map->ptr_attr_set(var_temp, UNTAINTED, NULL);
 			}
-			/*
 			else if (var_temp->getType()->isStructureOrClassType())
 			{
 				map->setType(var_temp, TYPE_CLASS);
-				map->var_attr_set(var_temp, UNTAINTED, NULL);
+				CXXRecordDecl* t = var_temp->getType()->getAsCXXRecordDecl();
+				classTmap* ct = getClassTmap(t);
+				classTmap* new_ct = new classTmap();
+				new_ct->classCopy(ct);
+				map->classmember_attr_set(var_temp, new_ct);
 			}
-			*/
 			else
 			{
 				map->setType(var_temp, TYPE_VARIABLE);
@@ -257,9 +277,9 @@ int main(int argc, char *argv[]) {
 	//resetIfCheck(Callgraph);
 	//ifcheck(Callgraph, *Callgraph.begin());
 
-	printCallGraph(Callgraph);
+	printCallGraph();
 
-	printClassTmap(ClassTmap);
+	//printClassTmap(ClassTmap);
 
 	cout << "class num：\t" << class_num << "\n";
 	cout << "function num：\t" << func_num << "\n";
@@ -283,7 +303,7 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-void get_file(string path, vector<string>& all_files)
+void get_file(string path, std::vector<string>& all_files)
 {
 	//文件句柄  
 	long   hFile = 0;
@@ -313,7 +333,7 @@ void get_file(string path, vector<string>& all_files)
 			}
 			else
 			{
-				;
+				; 
 			}
 		}
 		while (_findnext(hFile, &fileinfo) == 0);  //寻找下一个，成功返回0，否则-1
@@ -336,8 +356,8 @@ bool is_syslib(string rd)
 		return true;
 	else if (regex_match(rd, regex("(stdext::)(.*)")))
 		return true;
-	//else if (regex_match(rd, regex("(type_info::)(.*)")))
-		//return true;
+	else if (regex_match(rd, regex("(type_info)(.*)")))
+		return true;
 	else
 		return false;
 }
