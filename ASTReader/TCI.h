@@ -20,7 +20,7 @@ typedef struct
 {
 	ASTContext* astcontext;
 	int type;
-	VarDecl* vd;
+	const VarDecl* vd;
 	SourceLocation* sl;
 	Tainted_Attr* re;
 	FunctionDecl* fd;
