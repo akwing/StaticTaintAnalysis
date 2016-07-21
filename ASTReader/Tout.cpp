@@ -51,7 +51,7 @@ void Ttable::outTtable()
 {
 	
 }
-bool Ttable::insert(const VarDecl*p, int line,string function)
+bool Ttable::insert(const VarDecl*p, string line,string function)
 {
 	Node *t = makeTnode(p, line,function);
 	if (head == NULL)
@@ -70,7 +70,7 @@ Ttable::Node* Ttable::makeTnode(const VarDecl * p, string line, string function)
 {
 
 	
-	Node * t = NULL;
+//	Node * t = NULL;
 //	t = exchange(p, line, function);
 	//将行号转换为char类型
 	Node * t = new Node;
@@ -105,7 +105,7 @@ Ttable::Node* Ttable::makeTnode(const VarDecl * p, string line, string function)
 	return t;
 	
 }
-Ttable::Node* Ttable::exchange(const VarDecl * p, int line, string function)
+Ttable::Node* Ttable::exchange(const VarDecl * p, string line, string function)
 {
 	//将行号转换为char类型
 	Node * t = new Node;
