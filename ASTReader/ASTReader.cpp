@@ -9,6 +9,7 @@
 //#include "classTmap.h"
 #include"tmap.h"
 #include "CFGtattr.h"
+#include "Tout.h"
 
 using namespace std;
 
@@ -16,6 +17,8 @@ std::vector<callgraph*> Callgraph;
 std::vector<classTmap*> ClassTmap;
 std::vector<unique_ptr<ASTUnit>> astUnit;
 std::vector<string> files;
+Ttable t_table;
+std::vector<std::vector<XYJ_table*>*> xyj_table;
 
 void get_file(string path,std::vector<string>& all_file);
 void print_file(const std::vector<string> files);
@@ -290,10 +293,10 @@ int main(int argc, char *argv[]) {
 		if ((*it3)->getCur()->getQualifiedNameAsString().compare(string("main"))==0)
 		{
 			checkCFG(*(*it3)->get_cfg(), (*it3)->getCTmap(), *it3);
+			MsgOutput2Xml(*it3, t_table);
 			break;
 		}
 	}
-	//输出到xml：李珺
 
 	//FunctionDecl* ddd=Callgraph[0]->getCur();
 	//Stmt* sss=ddd->getBody();
