@@ -186,10 +186,9 @@ void getRing(std::vector<callgraph*>&Callgraph, int n, std::vector<FunctionDecl*
 }
 
 //打印callgraph相关信息
-void printCallGraph(std::vector<callgraph*> Callgraph)
+void printCallGraph()
 {
 	std::vector<callgraph*>::iterator it3;
-
 	std::vector<FunctionDecl*>::iterator it_call;
 	std::vector<FunctionDecl*> caller;
 	std::vector<FunctionDecl*> callee;
@@ -200,16 +199,16 @@ void printCallGraph(std::vector<callgraph*> Callgraph)
 		std::cout << (*it3)->getCur()->getQualifiedNameAsString() << "\n";
 		int paramNum = (*it3)->getCur()->getNumParams();
 		int varNum = (*it3)->getVarNum();
-		CTmap map = (*it3)->getCTmap();
-
+		CTmap* map = &(*it3)->getCTmap();
+		
 		std::cout << "\tParamNum: " << paramNum << "\n";
 		if (paramNum > 0)
 		{
 			for (unsigned i = 0; i < (*it3)->getCur()->getNumParams(); i++)
 			{
-				const VarDecl* tt = map.get_VarDecl(i);
+				const VarDecl* tt = map->get_VarDecl(i);
 				std::cout << "\t\t" << tt->getQualifiedNameAsString() << "    ";
-				map.getAttr(tt)->output();
+				map->getAttr(tt)->output();
 				std::cout << "\n";
 			}
 		}
@@ -219,13 +218,13 @@ void printCallGraph(std::vector<callgraph*> Callgraph)
 		{
 			for (int i = 0; i < varNum; i++)
 			{
-				const VarDecl* tt = map.get_VarDecl(i + paramNum);
+				const VarDecl* tt = map->get_VarDecl(i + paramNum);
 				std::cout << "\t\t" << tt->getQualifiedNameAsString() << "    ";
-				map.getAttr(tt)->output();
+				map->getAttr(tt)->output();
 				std::cout << "\n";
 			}
 		}
-
+		
 		int j = (*it3)->getCallerNum();
 		std::cout << "\tcaller:" << j << "\n";
 		for (it_call = caller.begin(); it_call != caller.end(); it_call++)
@@ -235,6 +234,7 @@ void printCallGraph(std::vector<callgraph*> Callgraph)
 		for (it_call = callee.begin(); it_call != callee.end(); it_call++)
 			std::cout << "\t\t" << (*it_call)->getQualifiedNameAsString() << "\n";
 	}
+	
 }
 
 //改变方法的类型（普通，类方法）
@@ -347,11 +347,11 @@ bool callgraph::is_callee(FunctionDecl* fd)
 }
 
 //检测某函数是否已经生成了他的callgraph
-bool if_find_function(vector<callgraph*> Callgraph, FunctionDecl* fd)
+bool if_find_function(std::vector<callgraph*> Callgraph, FunctionDecl* fd)
 {
 	if (Callgraph.size() == 0)
 		return false;
-	vector<callgraph*>::iterator it=Callgraph.begin(),it_end=Callgraph.end();
+	std::vector<callgraph*>::iterator it=Callgraph.begin(),it_end=Callgraph.end();
 	for (; it != it_end; it++)
 	{
 		if ((*it)->getCur() == fd)
