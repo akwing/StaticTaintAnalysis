@@ -69,7 +69,7 @@ bool Ttable::insert(string&  line, string& function, int TYPE )
 Ttable::Node* Ttable::makeTnode(string&  line, string& function, int TYPE)
 {
 
-	nt num = line.find(':', 2);
+	int num = line.find(':', 2);
 	string test_line;
 	test_line.insert(0, line, num + 1, 1);
 	cout << test_line << endl;
@@ -157,19 +157,19 @@ Ttable::Node* Ttable::makeTnode(string&  line, string& function, int TYPE)
 	return t;
 	
 }
-Ttable::Node* Ttable::exchange(const VarDecl * p, string line, string function,int TYPE)
+Ttable::Node* Ttable::exchange(string&  line, string& function, int TYPE)
 {
 	//将行号转换为char类型
 	Node * t = new Node;
 	t->line = new char[50];
 	sprintf(t->line, "%d", line);
 	//将名字转换为char类型
-	t->Tname = (char*)p->getQualifiedNameAsString().data();
+//	t->Tname = (char*)p->getQualifiedNameAsString().data();
 	/*为什么不用getDeclName函数获取变量的名字呢,huozhe shi p->getNameAsString*/
 	//将函数名字转换为char
 	t->Tfunction = (char*)function.data();
 	//通过clang得到了该变量所在的文件名。
-	t->Tfile = (char*)p->getASTContext().getSourceManager().getFilename(p->getSourceRange().getBegin()).data();
+//	t->Tfile = (char*)p->getASTContext().getSourceManager().getFilename(p->getSourceRange().getBegin()).data();
 	return t;
 
 }
