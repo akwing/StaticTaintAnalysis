@@ -5,7 +5,7 @@
 #include"tinyxml.h"
 #include"tinystr.h"
 using namespace std;
-#define TTYPE_ARRAY 
+#define TTYPE_ARRAY 1
 #define TTYPE_DIV_MOD 2
 #define TTYPE_LOOP_BOUND 3
 #define TTYPE_MEM 4
