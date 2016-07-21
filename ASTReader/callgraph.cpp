@@ -424,3 +424,9 @@ SourceManager& callgraph::getSourceManager()
 {
 	return astcontext->getSourceManager();
 }
+
+//获取该函数所在文件的ASTContext
+ASTContext* callgraph::getASTContext()
+{
+	return astcontext;
+}
