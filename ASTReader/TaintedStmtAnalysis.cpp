@@ -20,7 +20,7 @@ bool checkblock(CFGBlock* cfgb,CTmap &out,callgraph* cg)
 		i++;
 		//scan each statement
 		if (v->getKind() == CFGElement::Kind::Statement)
-		{
+		{	
 			CFGStmt s = v->castAs<CFGStmt>();
 			Stmt_analysis(s.getStmt(),out,cg);
 			//out.output();
@@ -30,6 +30,32 @@ bool checkblock(CFGBlock* cfgb,CTmap &out,callgraph* cg)
 	return false;
 }
 
+// 循环上界检测
+bool checkCond(const Stmt* stmt, CTmap &out, callgraph* cg)
+{
+	if (stmt->getStmtClass() == Stmt::BinaryOperatorClass)
+	{
+		Tainted_Attr* lta, *rta;
+		const BinaryOperator* bo = dyn_cast<BinaryOperator>(stmt);
+		lta = Expr_analysis(bo->getLHS(), out, cg);
+		rta = Expr_analysis(bo->getRHS(), out, cg);
+		if (lta->getVariableAttr() == RELATED || rta->getVariableAttr() == RELATED)
+		{
+			//Error kind = 3
+			TCI * tci = new TCI;
+			tci->fd = cg->getCur();
+			tci->re = new Tainted_Attr;
+			tci->re->setType(TYPE_VARIABLE);
+			tci->re->unionAttr(*lta, *rta);
+			tci->type = 3;
+			tci->vd = NULL;
+			tci->expr = bo;
+			tci->astcontext = cg->getASTContext();
+			cg->TCI_list.insert(cg->TCI_list.end(), tci);
+		}
+	}
+	return true;
+}
 /*
 	Analysis a statement and modify the outmap at the same time
 */
@@ -168,8 +194,8 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 		lta = Expr_analysis(lexpr, out, cg);
 		rta = Expr_analysis(rexpr, out, cg);
 
-		//除数操作检测
-		if (bo->getOpcode() == BinaryOperatorKind::BO_Div)
+		//除模操作检测
+		if (bo->getOpcode() == BinaryOperatorKind::BO_Div || bo->getOpcode() == BinaryOperatorKind::BO_Rem)
 		{
 			if (rta->getVariableAttr() == RELATED)
 			{
@@ -223,7 +249,7 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 			{
 				TCI * tci = new TCI;  
 				tci->fd = cg->getCur();
-				tci->re = res;
+				tci->re = ata;
 				tci->type = 1;
 				tci->vd = dyn_cast<VarDecl>(drexpr->getDecl());;
 				tci->expr = expr;
@@ -285,7 +311,7 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 			{
 				TCI * tci = new TCI;
 				tci->fd = cg->getCur();
-				tci->re = res;
+				tci->re = ata;
 				tci->type = 1;
 				tci->vd = dyn_cast<VarDecl>(drexpr->getDecl());;
 				tci->expr = expr;
@@ -323,8 +349,12 @@ Tainted_Attr* CallExpr_analysis(const Expr* expr, CTmap &out, callgraph* cg)
 	fd = cexpr->getDirectCallee();
 	calleeCg = findById(Callgraph, fd->getQualifiedNameAsString());
 	if (calleeCg == NULL)    //the function can't be found ,which means its in the lib
-	{
+	{  
 		/*
+		if (strcmp(fd->getQualifiedNameAsString, "free")
+		{
+
+		}
 		if (cexpr->getNumArgs() == 1)
 		{
 			cout << "11111111111111111111111111111111111111111111111111111111" << endl;
@@ -423,4 +453,4 @@ Tainted_Attr* ArrayExpr_analysis(const Expr* expr, CTmap &out, callgraph* cg)
 		cout << "ArrayBase is not a Decl or ImplicateCast" << endl;
 	}
 	return res;
-}
+}	
