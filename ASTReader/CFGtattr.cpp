@@ -95,7 +95,8 @@ void checkTerminator(CFGBlock &cfgb, CTmap &out, callgraph *cg)
 	{
 		if ((pred_it->getReachableBlock()->getBlockID()) <= n)
 		{
-			checkCond(cfgb.getTerminatorCondition(), out, cg);
+			const Stmt *stmt = cfgb.getTerminatorCondition();
+			checkCond(stmt, out, cg);
 		}
 		pred_it++;
 	}
@@ -226,6 +227,7 @@ void MsgOutput2Xml(callgraph *cg, Ttable &tt)
 		}
 		it++;
 	}
+
 	it = cg->TCI_list_call.begin();
 	it_end = cg->TCI_list_call.end();
 
