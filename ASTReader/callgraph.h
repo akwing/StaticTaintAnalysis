@@ -54,6 +54,7 @@ public:
 	int get_param_no(const VarDecl* vd);
 	void set_ASTContext(ASTContext* astcontext);
 	SourceManager& getSourceManager();
+	ASTContext* getASTContext();
 
 public:
 	std::map<clang::CFGBlock *, CFGInOut> block_io_map;
