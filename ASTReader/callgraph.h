@@ -7,11 +7,14 @@ class CFGInOut;
 #include "AST.h"
 #include "CFGtattr.h"
 #include "TCI.h"
+#include "Tout.h"
 
 using namespace std;
 using namespace clang;
 
 extern vector<callgraph*> Callgraph;
+extern Ttable t_table;
+extern std::vector<std::vector<XYJ_table*>*> xyj_table;
 
 typedef enum
 {
@@ -90,7 +93,7 @@ private:
 };
 
 callgraph* findById(std::vector<callgraph*> Callgraph, std::string id);
-void ifcheck(std::vector<callgraph*> cg, callgraph* t);
+void ringCheck(std::vector<callgraph*> cg, callgraph* t,std::vector<callgraph*> ring);
 void resetIfCheck(std::vector<callgraph*>Callgraph);
 void getRing(std::vector<callgraph*>& Callgraph, int n, std::vector<FunctionDecl*>& ringVector);
 void printCallGraph();
