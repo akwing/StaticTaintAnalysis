@@ -53,11 +53,13 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 			
 			//checkblock, modify changed
 			checkblock(r_iter->first, *outm,cg);
+			
 			if (outm->compareMap(preout) == false)
 			{
 				changed = true;
-			//	printBlockMsg(block_io_map,r_iter->first);
+				printBlockMsg(cg->block_io_map,r_iter->first);
 			}
+			
 		}
 
 		//迭代至所有block的OUT都不发生改变，跳出循环
@@ -65,6 +67,8 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 		cout << "******************************" << endl;
 		if (changed == false)
 			break;
+		int a;
+		cin >> a;
 		i++;
 	}
 	//here to add output
@@ -75,8 +79,8 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 	
 	outm = cg->block_io_map[&cfg.getExit()].GetOUT();
 	
-	output2xml(cg,*outm);
-	cout << 222 << endl;
+	//output2xml(cg,*outm);
+	//cout << 222 << endl;
 }
 
 //ta为参数的污染情况，n为ta数组中元素的个数，该函数用于修改第二个TCI表
@@ -101,7 +105,7 @@ void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], co
 		temp->astcontext = (*it)->astcontext;
 		temp->type = (*it)->type;
 		temp->vd = (*it)->vd;
-		temp->stmt = (*it)->stmt;
+		temp->expr = (*it)->expr;
 		temp->re = new Tainted_Attr;
 		temp->re->copy((*it)->re);
 		temp->fd = (*it)->fd;
@@ -121,7 +125,7 @@ void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], co
 		temp->astcontext = (*it)->astcontext;
 		temp->type = (*it)->type;
 		temp->vd = (*it)->vd;
-		temp->stmt = (*it)->stmt;
+		temp->expr = (*it)->expr;
 		temp->re = new Tainted_Attr;
 		temp->re->copy((*it)->re);
 		temp->fd = (*it)->fd;
@@ -178,18 +182,29 @@ void MsgOutput2Xml(callgraph *cg, Ttable &tt)
 {
 	SourceManager* sm = NULL;
 	ASTContext* astc = NULL;
+	Tainted_Attr* ta;
 
 	vector<TCI *>::iterator it, it_end;
 	it = cg->TCI_list.begin();
 	it_end = cg->TCI_list.end();
 
+	set<const VarDecl *>::iterator var_it, var_end;
+
 	while (it != it_end)
 	{
-		if (1)
+		ta = (*it)->re;
+		var_it = ta->getVariableRelation()->begin();
+		var_end = ta->getVariableRelation()->end();
+		while (var_it != var_end)
 		{
-			sm = &(*it)->astcontext->getSourceManager();
-			(*it)->stmt->getLocStart().printToString(*sm);
-			tt.insert((*it)->vd, (*it)->stmt->getLocStart().printToString(*sm), (*it)->fd->getQualifiedNameAsString());
+			//和main的一个参数相关
+			if (cg->get_param_no(*var_it) > 0)
+			{
+				sm = &(*it)->astcontext->getSourceManager();
+				tt.insert((*it)->vd, (*it)->expr->getLocStart().printToString(*sm), (*it)->fd->getQualifiedNameAsString(), (*it)->type);
+				break;
+			}
+			var_it++;
 		}
 		it++;
 	}
@@ -197,6 +212,24 @@ void MsgOutput2Xml(callgraph *cg, Ttable &tt)
 	it = cg->TCI_list_call.begin();
 	it_end = cg->TCI_list_call.end();
 
+	while (it != it_end)
+	{
+		ta = (*it)->re;
+		var_it = ta->getVariableRelation()->begin();
+		var_end = ta->getVariableRelation()->end();
+		while (var_it != var_end)
+		{
+			//和main的一个参数相关
+			if (cg->get_param_no(*var_it) > 0)
+			{
+				sm = &(*it)->astcontext->getSourceManager();
+				tt.insert((*it)->vd, (*it)->expr->getLocStart().printToString(*sm), (*it)->fd->getQualifiedNameAsString(), (*it)->type);
+				break;
+			}
+			var_it++;
+		}
+		it++;
+	}
 
 }
 
@@ -261,5 +294,5 @@ void output2xml(callgraph *cg, CTmap &tm)
 		it++;
 	}
 	cout << 333 << endl;
-	tt.listout();
+	//tt.listout();
 }
