@@ -46,8 +46,10 @@ public:
 };
 
 void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg);
+void checkTerminator(CFGBlock &cfgb, CTmap &out, callgraph *cg);
+
 void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], const int n);
-void MsgOutput2Xml(callgraph *cg, Ttable *tt);
+void MsgOutput2Xml(callgraph *cg, Ttable &tt);
 
 void BuildBlockIoTable(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *CFGexit, clang::CFGBlock *block, CTmap &tm);
 void printBlockMsg(map<clang::CFGBlock *, CFGInOut> &block_io_map, clang::CFGBlock *block);
