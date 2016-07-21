@@ -11,6 +11,21 @@ using namespace std;
 #define TTYPE_MEM 4
 #define TTYPE_POINTER_NULL_SET 5
 #define TTYPE_RECURSIVE_CALL 6
+
+class XYJ_table
+{
+public:
+	FunctionDecl* fd;
+	ASTContext* astc;
+	XYJ_table(){}
+	XYJ_table(FunctionDecl* f, ASTContext* as)
+	{
+		fd = f;
+		astc = as;
+	}
+};
+
+
 class Ttable
 {
 public:
