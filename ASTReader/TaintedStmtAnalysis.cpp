@@ -135,6 +135,8 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 {
 	Tainted_Attr* res = new Tainted_Attr();
 	res->setType(TYPE_VARIABLE);
+	Tainted_Attr* ata = new Tainted_Attr();
+	ata->setType(TYPE_VARIABLE);
 	const BinaryOperator* bo = dyn_cast<BinaryOperator>(expr);               
 	const Expr* lexpr = bo->getLHS();
 	const Expr* rexpr = bo->getRHS(); 
@@ -142,6 +144,7 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 	const DeclRefExpr* drexpr;
 	const Expr* arrayBase;
 	const Expr* arrayIdx;
+	Tainted_Attr* lta, * rta;
 	const ArraySubscriptExpr *asexpr;
 	switch (bo->getOpcode()) {
 	case BinaryOperatorKind::BO_LAnd:                  //if && is in a Expr other than IfExpr ,there is still some problens
@@ -162,10 +165,25 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 	case BinaryOperatorKind::BO_Shl:
 	case BinaryOperatorKind::BO_Shr:
 	case BinaryOperatorKind::BO_Xor:
+		lta = Expr_analysis(lexpr, out, cg);
+		rta = Expr_analysis(rexpr, out, cg);
+
+		//除数操作检测
 		if (bo->getOpcode() == BinaryOperatorKind::BO_Div)
 		{
+			if (rta->getVariableAttr() == RELATED)
+			{
+				TCI * tci = new TCI;
+				tci->fd = cg->getCur();
+				tci->re = rta;
+				tci->type = 2;
+				tci->vd = NULL;
+				tci->expr = expr;
+				tci->astcontext = cg->getASTContext();
+				cg->TCI_list.insert(cg->TCI_list.end(), tci);
+			}
 		}
-		res->unionAttr(*Expr_analysis(lexpr, out,cg), *Expr_analysis(rexpr, out,cg));
+		res->unionAttr(*lta,*rta);
 		return res;
 	case BinaryOperatorKind::BO_AndAssign:
 	case BinaryOperatorKind::BO_AddAssign:
@@ -183,11 +201,12 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 			asexpr = dyn_cast<ArraySubscriptExpr>(lexpr);
 			arrayBase = asexpr->getBase();
 			arrayIdx = asexpr->getIdx();
+			ata->unionAttr(*Expr_analysis(arrayIdx, out, cg));
 			while (arrayBase->getStmtClass() == Stmt::ArraySubscriptExprClass || arrayBase->getStmtClass() == Stmt::ImplicitCastExprClass)
 			{
 				if (arrayBase->getStmtClass() == Stmt::ArraySubscriptExprClass)
 				{
-					res->unionAttr(*Expr_analysis(arrayIdx, out, cg));
+					ata->unionAttr(*Expr_analysis(arrayIdx, out, cg));
 					asexpr = dyn_cast<ArraySubscriptExpr>(arrayBase);
 					arrayBase = asexpr->getBase();
 					arrayIdx = asexpr->getIdx();
@@ -200,9 +219,9 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 			drexpr = dyn_cast<DeclRefExpr>(arrayBase);
 
 			//Error kind  = 1 (array tainted)
-			if (res->getVariableAttr() == RELATED)
+			if (ata->getVariableAttr() == RELATED)
 			{
-				TCI * tci = new TCI;
+				TCI * tci = new TCI;  
 				tci->fd = cg->getCur();
 				tci->re = res;
 				tci->type = 1;
@@ -216,8 +235,26 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 		{
 			drexpr = dyn_cast<DeclRefExpr>(lexpr);
 		}
-		vd = dyn_cast<VarDecl>(drexpr->getDecl());
-		res->unionAttr(*Expr_analysis(lexpr, out,cg), *Expr_analysis(rexpr, out,cg));
+		vd = dyn_cast<VarDecl>(drexpr->getDecl());  //获取到最终的VarDecl
+
+		rta = Expr_analysis(rexpr, out, cg);
+
+		//除法操作检查
+		if (bo->getOpcode() == BinaryOperatorKind::BO_DivAssign)
+		{
+			if (rta->getVariableAttr() == RELATED)
+			{
+				TCI * tci = new TCI;
+				tci->fd = cg->getCur();
+				tci->re = rta;
+				tci->type = 2;
+				tci->vd = NULL;
+				tci->expr = expr;
+				tci->astcontext = cg->getASTContext();
+				cg->TCI_list.insert(cg->TCI_list.end(), tci);
+			}
+		}
+		res->unionAttr( *rta);
 		out.var_attr_set(vd, res);
 		return res;
 	case BinaryOperatorKind::BO_Assign:
@@ -227,11 +264,11 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 			asexpr = dyn_cast<ArraySubscriptExpr>(lexpr);
 			arrayBase = asexpr->getBase();
 			arrayIdx = asexpr->getIdx();
+			ata->unionAttr(*Expr_analysis(arrayIdx, out, cg));
 			while (arrayBase->getStmtClass() == Stmt::ArraySubscriptExprClass || arrayBase->getStmtClass() == Stmt::ImplicitCastExprClass)
 			{
 				if (arrayBase->getStmtClass() == Stmt::ArraySubscriptExprClass)
 				{
-					res->unionAttr(*Expr_analysis(arrayIdx, out, cg));
 					asexpr = dyn_cast<ArraySubscriptExpr>(arrayBase);
 					arrayBase = asexpr->getBase();
 					arrayIdx = asexpr->getIdx();
@@ -244,7 +281,7 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 			drexpr = dyn_cast<DeclRefExpr>(arrayBase);
 
 			//Error kind  = 1 (array tainted)
-			if (res->getVariableAttr() == RELATED)
+			if (ata->getVariableAttr() == RELATED)
 			{
 				TCI * tci = new TCI;
 				tci->fd = cg->getCur();
@@ -379,7 +416,6 @@ Tainted_Attr* ArrayExpr_analysis(const Expr* expr, CTmap &out, callgraph* cg)
 			tci->astcontext = cg->getASTContext();
 			cg->TCI_list.insert(cg->TCI_list.end(), tci);
 		}
-		
 		out.var_attr_set(vd, res);
 	}
 	else         //exception
