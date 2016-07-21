@@ -64,8 +64,8 @@ public:
 
 public:
 	std::map<clang::CFGBlock *, CFGInOut> block_io_map;
-	vector<TCI> TCI_list;
-	vector<TCI> TCI_list_call;
+	vector<TCI*> TCI_list;
+	vector<TCI*> TCI_list_call;
 	int ifCheck;
 
 private:
