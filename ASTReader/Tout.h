@@ -31,8 +31,8 @@ private:
 	
 	Node * head;
 
-	Node* makeTnode(const VarDecl * p, int line, string function);
+	Node* makeTnode(const VarDecl * p, string line, string function);
 
-	Node* exchange(const VarDecl * p, int line, string function);
+	Node* exchange(const VarDecl * p, string line, string function);
 };
 
