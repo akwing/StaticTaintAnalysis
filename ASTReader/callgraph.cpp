@@ -140,6 +140,7 @@ void ringCheck(std::vector<callgraph*> cg, callgraph* t)
 				
 				t->delCallee(tempt);
 				tempc->delCaller(tempt);
+				t_table.insert(tempt->getLocation().printToString(tempc->getSourceManager()), tempt->getQualifiedNameAsString(), 6);
 				//it_callee--;//=================
 				i--;
 				size--;
