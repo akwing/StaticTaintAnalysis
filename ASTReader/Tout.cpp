@@ -31,15 +31,23 @@ bool Ttable::CreateXmlFile(Node*p, char*file)
 	//设置Person元素的属性。
 	//PersonElement->SetAttribute("type", p->Type);
 	//创建name元素、age元素并连接。
-	TiXmlElement *NameElement = new TiXmlElement("name");
+	TiXmlElement *NameElement = new TiXmlElement("ID");
 	TiXmlElement *AgeElement = new TiXmlElement("line");
+	TiXmlElement *functionname = new TiXmlElement("function");
+	TiXmlElement *file_name = new TiXmlElement("file");
 	PersonElement->LinkEndChild(NameElement);
 	PersonElement->LinkEndChild(AgeElement);
+	PersonElement->LinkEndChild(functionname);
+	PersonElement->LinkEndChild(file_name);
 	//设置name元素和age元素的内容并连接。
-	TiXmlText *NameContent = new TiXmlText(p->Tname);
+	TiXmlText *NameContent = new TiXmlText(p->TYPE);
 	TiXmlText *AgeContent = new TiXmlText(p->line);
+	TiXmlText *functname = new TiXmlText(p->Tfunction);
+	TiXmlText *file_name_1 = new TiXmlText(p->Tfile);
 	NameElement->LinkEndChild(NameContent);
 	AgeElement->LinkEndChild(AgeContent);
+	functionname->LinkEndChild(functname);
+	file_name->LinkEndChild(file_name_1);
 	//保存到文件
 	int i;
 
@@ -49,11 +57,11 @@ bool Ttable::CreateXmlFile(Node*p, char*file)
 
 void Ttable::outTtable()
 {
-	
+
 }
-bool Ttable::insert(string&  line, string& function, int TYPE )
+bool Ttable::insert(string&  line, string& function, int TYPE)
 {
-	Node *t = makeTnode(line,function,TYPE);
+	Node *t = makeTnode(line, function, TYPE);
 	if (head == NULL)
 	{
 		head = t;
@@ -68,7 +76,7 @@ bool Ttable::insert(string&  line, string& function, int TYPE )
 }
 Ttable::Node* Ttable::makeTnode(string&  line, string& function, int TYPE)
 {
-
+	/*--------------------------------*/
 	int num = line.find(':', 2);
 	string test_line;
 	test_line.insert(0, line, num + 1, 1);
@@ -76,46 +84,67 @@ Ttable::Node* Ttable::makeTnode(string&  line, string& function, int TYPE)
 	string test_file;
 	test_file.insert(0, line, 0, num);
 	cout << test_file << endl;
-//	Node * t = NULL;
-//	t = exchange(p, line, function);
+	/*以上部分就是将参数line进行解析，得到了代表行号的参数，和文件路径*/
+	/*-------------------------------*/
+
+
+	//	Node * t = NULL;
+	//	t = exchange(p, line, function);
 	//将行号转换为char类型
+	
 	Node * t = new Node;
+	/*--------------------------------*/
 	t->line = new char[50];
-//	sprintf(t->line, "%d", line);
+	//	sprintf(t->line, "%d", line);
 	string str_line = test_line;
-	str_line.copy(t->line,str_line.length(),0);
-	*(t->line + str_line.length())= '\0';
-	cout<<t->line<<"t->line"<<endl;
+	str_line.copy(t->line, str_line.length(), 0);
+	*(t->line + str_line.length()) = '\0';
+	cout << t->line << "t->line" << endl;
+	/*将第一部分解释的行号进行转换，存入节点数据域中*/
+	/*-----------------------------------*/
+
 	//将名字转换为char类型
 	//cout << p->getQualifiedNameAsString().data()<<" 23333" << endl;
 	//cout <<(char*) p->getQualifiedNameAsString().data() << " 1111" << endl;
+	/*
 	t->Tname = new char[50];
 	t->Tname = NULL;
-//	string test = (char*)p->getQualifiedNameAsString().data();
+	*/
+	//	string test = (char*)p->getQualifiedNameAsString().data();
 	//t->Tname = (char*)test.data();
-//	test.copy(t->Tname, test.length(), 0);
-//	*(t->Tname + test.length()) = '\0';
-//	cout << t->Tname << " t->Tname" << endl;
+	//	test.copy(t->Tname, test.length(), 0);
+	//	*(t->Tname + test.length()) = '\0';
+	//	cout << t->Tname << " t->Tname" << endl;
 	//t->Tname = (char*)p->getQualifiedNameAsString().data();
 	//cout <<t->Tname <<" 344444" << endl;
 	/*为什么不用getDeclName函数获取变量的名字呢,huozhe shi p->getNameAsString*/
 	//将函数名字转换为char
-	t->Tfunction = new char[100];
-	string funtion_name = function;
+
 	//cout << funtion_name << 111212313 << endl;
 	//t->Tfunction = (char*)funtion_name.data();
+
+	/*---------------------------------*/
+	t->Tfunction = new char[100];
+	string funtion_name = function;
 	funtion_name.copy(t->Tfunction, funtion_name.length(), 0);
-	*(t->Tfunction + funtion_name.length())= '\0';
+	*(t->Tfunction + funtion_name.length()) = '\0';
 	cout << t->Tfunction << " Tfunction" << endl;
+	/*将输入的字符串参数存入节点*/
+	/*------------------------------------*/
+
+
 	//通过clang得到了该变量所在的文件名。
-//	t->Tfile = (char*)p->getASTContext().getSourceManager().getFilename(p->getSourceRange().getBegin()).data();
+	//	t->Tfile = (char*)p->getASTContext().getSourceManager().getFilename(p->getSourceRange().getBegin()).data();
+	
+	/*----------------------------------------*/
 	t->Tfile = new char[500];
 	string Tfile_name = test_file;
 	Tfile_name.copy(t->Tfile, Tfile_name.length(), 0);
 	*(t->Tfile + Tfile_name.length()) = '\0';
 	cout << t->Tfile << " Tfile" << endl;
-	
-	
+	/*将文件名存入节点*/
+	/*-------------------------------------*/
+
 	t->TYPE = new char[100];
 	if (TYPE == 1)
 	{
@@ -129,7 +158,7 @@ Ttable::Node* Ttable::makeTnode(string&  line, string& function, int TYPE)
 		Type.copy(t->TYPE, Type.length(), 0);
 		*(t->TYPE + Type.length()) = '\0';
 	}
-	else if (TYPE==3)
+	else if (TYPE == 3)
 	{
 		string Type = "TTYPE_LOOP_BOUND";
 		Type.copy(t->TYPE, Type.length(), 0);
@@ -141,7 +170,7 @@ Ttable::Node* Ttable::makeTnode(string&  line, string& function, int TYPE)
 		Type.copy(t->TYPE, Type.length(), 0);
 		*(t->TYPE + Type.length()) = '\0';
 	}
-	else if (TYPE==5)
+	else if (TYPE == 5)
 	{
 		string Type = "TTYPE_POINTER_NULL_SET";
 		Type.copy(t->TYPE, Type.length(), 0);
@@ -155,7 +184,7 @@ Ttable::Node* Ttable::makeTnode(string&  line, string& function, int TYPE)
 	}
 
 	return t;
-	
+
 }
 Ttable::Node* Ttable::exchange(string&  line, string& function, int TYPE)
 {
@@ -164,12 +193,12 @@ Ttable::Node* Ttable::exchange(string&  line, string& function, int TYPE)
 	t->line = new char[50];
 	sprintf(t->line, "%d", line);
 	//将名字转换为char类型
-//	t->Tname = (char*)p->getQualifiedNameAsString().data();
+	//	t->Tname = (char*)p->getQualifiedNameAsString().data();
 	/*为什么不用getDeclName函数获取变量的名字呢,huozhe shi p->getNameAsString*/
 	//将函数名字转换为char
 	t->Tfunction = (char*)function.data();
 	//通过clang得到了该变量所在的文件名。
-//	t->Tfile = (char*)p->getASTContext().getSourceManager().getFilename(p->getSourceRange().getBegin()).data();
+	//	t->Tfile = (char*)p->getASTContext().getSourceManager().getFilename(p->getSourceRange().getBegin()).data();
 	return t;
 
 }
@@ -179,7 +208,7 @@ void Ttable::listout()
 	t = head;
 	while (t != NULL)
 	{
-		cout << t->Tname << endl;
+		//cout << t->Tname << endl;
 		cout << t->line << endl;
 		cout << t->Tfunction << endl;
 		cout << t->Tfile << endl;
