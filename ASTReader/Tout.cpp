@@ -88,7 +88,7 @@ Ttable::Node* Ttable::makeTnode(string&  line, string& function, int TYPE)
 	/*以上部分就是将参数line进行解析，得到了代表行号的参数，和文件路径*/
 	/*-------------------------------*/
 
-
+	//测试
 	//	Node * t = NULL;
 	//	t = exchange(p, line, function);
 	//将行号转换为char类型
