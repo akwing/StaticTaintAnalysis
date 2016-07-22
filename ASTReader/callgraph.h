@@ -37,14 +37,15 @@ public:
 	void addCaller(FunctionDecl* otherFD);
 	void addCallee(FunctionDecl* otherFD);
 	void delCallee(FunctionDecl* otherFD);
+	void delCaller(FunctionDecl* otherFD);
 	void changeMethodType();
 	void setRoot(VarDecl* r);
 	void setClass(CXXRecordDecl* rd);
 	CXXRecordDecl* getClass();
 	VarDecl* getRoot();
 	methodType getMethodType();
-	bool is_caller(FunctionDecl* fd);
-	bool is_callee(FunctionDecl* fd);
+	bool is_caller(const FunctionDecl* fd);
+	bool is_callee(const FunctionDecl* fd);
 
 public:
 	std::unique_ptr<CFG>& get_cfg();
@@ -93,7 +94,7 @@ private:
 };
 
 callgraph* findById(std::vector<callgraph*> Callgraph, std::string id);
-void ringCheck(std::vector<callgraph*> cg, callgraph* t,std::vector<callgraph*> ring);
+void ringCheck(std::vector<callgraph*> cg, callgraph* t);
 void resetIfCheck(std::vector<callgraph*>Callgraph);
 void getRing(std::vector<callgraph*>& Callgraph, int n, std::vector<FunctionDecl*>& ringVector);
 void printCallGraph();
