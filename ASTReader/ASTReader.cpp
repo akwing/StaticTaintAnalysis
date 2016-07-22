@@ -287,6 +287,20 @@ int main(int argc, char *argv[]) {
 	cout << "class num：\t" << class_num << "\n";
 	cout << "function num：\t" << func_num << "\n";
 	std::vector<callgraph*>::iterator it3;
+
+	it3 = Callgraph.begin();
+	for (; it3 != Callgraph.end(); it3++)
+	{
+		if ((*it3)->getCur()->getQualifiedNameAsString().compare(string("main")) == 0)
+		{
+			resetIfCheck(Callgraph);
+			ringCheck(Callgraph, *it3);
+			break;
+		}
+	}
+
+	printCallGraph();
+
 	it3 = Callgraph.begin();
 	for (; it3 != Callgraph.end(); it3++)
 	{
