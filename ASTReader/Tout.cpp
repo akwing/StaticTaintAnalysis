@@ -218,7 +218,7 @@ void Ttable::listout()
 }
 void Ttable::XMLout()
 {
-	char *file = "C:/Users/Chris/Desktop/111/%d.XML";
+	char *file = "C:/Users/Chris/Desktop/111/wrong%d.XML";
 	char * f = NULL;
 	int i = 1;
 	Node*p = head;
