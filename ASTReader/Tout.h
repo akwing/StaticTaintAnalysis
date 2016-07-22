@@ -31,7 +31,7 @@ class Ttable
 public:
 	struct Node
 	{
-		char*Tname;
+		//char*Tname;
 		char*Tfile;
 		char*Tfunction;
 		char*line;
@@ -41,9 +41,9 @@ public:
 	Ttable();
 	~Ttable();
 	void make_node(const VarDecl *p);
-//	bool insert(const VarDecl *p,  int line,string function);
-//	bool insert(const VarDecl *p,string line,string function,int TYPE);
-	bool insert(string& line,string& function,int TYPE );
+	//	bool insert(const VarDecl *p,  int line,string function);
+	//	bool insert(const VarDecl *p,string line,string function,int TYPE);
+	bool insert(string& line, string& function, int TYPE);
 	void outTtable();
 	bool CreateXmlFile(Node*p, char*file);
 	VarDecl * serach(const VarDecl * p);
@@ -51,11 +51,10 @@ public:
 	void XMLout();
 
 private:
-	
+
 	Node * head;
 
-	Node* makeTnode(string& line,string& function,int TYPE);
+	Node* makeTnode(string& line, string& function, int TYPE);
 
-	Node* exchange(string& line,string& function,int TYPE);
+	Node* exchange(string& line, string& function, int TYPE);
 };
-
