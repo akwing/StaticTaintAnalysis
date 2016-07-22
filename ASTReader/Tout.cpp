@@ -54,11 +54,12 @@ bool Ttable::CreateXmlFile(Node*p, char*file)
 	myDocument->SaveFile(file);
 	return 1;
 }
-
+/*输出污染表*/
 void Ttable::outTtable()
 {
 
 }
+/*插入节点，对外函数*/
 bool Ttable::insert(string&  line, string& function, int TYPE)
 {
 	Node *t = makeTnode(line, function, TYPE);
