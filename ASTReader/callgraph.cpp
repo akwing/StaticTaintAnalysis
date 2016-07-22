@@ -420,7 +420,7 @@ int callgraph::get_param_no(const VarDecl* vd)
 		if (map_param[i] == vd)
 			return i;
 		i++;
-		if (i > paramNum)
+		if (i >= paramNum)
 			return -1;
 	}
 }
