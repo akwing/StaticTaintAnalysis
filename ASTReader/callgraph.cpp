@@ -90,7 +90,19 @@ void callgraph::delCallee(FunctionDecl* otherFD)
 		if ((*it_callee) == otherFD)
 		{
 			callee.erase(it_callee);
-			break;
+			return;
+		}
+}
+
+void callgraph::delCaller(FunctionDecl* otherFD)
+{
+	std::vector<FunctionDecl*>::iterator it_caller;
+	std::vector<FunctionDecl*>::iterator it_callee;
+	for (it_caller = caller.begin(); it_caller != caller.end(); it_caller++)
+		if ((*it_caller) == otherFD)
+		{
+			caller.erase(it_caller);
+			return;
 		}
 }
 
@@ -107,39 +119,37 @@ callgraph* findById(std::vector<callgraph*> Callgraph, std::string id)
 }
 
 //查找callgraph中的环，对其进行除环操作
-void ringCheck(std::vector<callgraph*> cg, callgraph* t,std::vector<callgraph*> ring)
+void ringCheck(std::vector<callgraph*> cg, callgraph* t)
 {
 	t->ifCheck = -1;
-	ring.push_back(t);
+	//ring.push_back(t);
 	std::vector<FunctionDecl*>::iterator it_callee;
 	std::vector<FunctionDecl*> callee = t->getCallee();
-	for (it_callee = callee.begin(); it_callee != callee.end(); it_callee++)
+	int size = callee.size();
+	//for (it_callee = callee.begin(); it_callee != callee.end(); it_callee++)
+	for (int i = 0; i < size;i++)
 	{
-		FunctionDecl* tempt = *it_callee;
+		//FunctionDecl* tempt = *it_callee;
+		FunctionDecl* tempt = callee[i];
 		callgraph* tempc = findById(cg, tempt->getQualifiedNameAsString());
 		if (tempc != NULL)
 		{
 			if (tempc->ifCheck == -1)
 			{
 				//输出环信息到xml
-				std::vector<XYJ_table*> ring_table;
-				std::vector<callgraph*>::iterator it_ring=ring.begin();
-				for (; it_ring != ring.end(); it_ring++)
-				{
-					XYJ_table* new_table = new XYJ_table((*it_ring)->getCur(), (*it_ring)->getASTContext());
-					ring_table.push_back(new_table);
-					//t_table.insert(string(""), string(""), 6);
-				}
-				xyj_table.push_back(&ring_table);
+				
 				t->delCallee(tempt);
-				it_callee--;//=================
+				tempc->delCaller(tempt);
+				//it_callee--;//=================
+				i--;
+				size--;
 			}
 			else
-				ringCheck(cg, tempc,ring);
+				ringCheck(cg, tempc);
 		}
 	}
 	t->ifCheck = 1;
-	ring.pop_back();
+	//ring.pop_back();
 }
 
 //重置ifcheck
@@ -331,7 +341,7 @@ int callgraph::getVarNum()
 }
 
 //检测某函数是否已经是本函数所调用的函数
-bool callgraph::is_caller(FunctionDecl* fd)
+bool callgraph::is_caller(const FunctionDecl* fd)
 {
 	int size = caller.size();
 	if (size == 0)
@@ -345,7 +355,7 @@ bool callgraph::is_caller(FunctionDecl* fd)
 }
 
 //检测某函数是否已经是调用本函数的函数
-bool callgraph::is_callee(FunctionDecl* fd)
+bool callgraph::is_callee(const FunctionDecl* fd)
 {
 	int size = callee.size();
 	if (size == 0)
