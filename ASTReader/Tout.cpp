@@ -219,17 +219,24 @@ void Ttable::listout()
 }
 void Ttable::XMLout()
 {
-	char *file = "C:/Users/Chris/Desktop/111/wrong%d.XML";
-	char * f = NULL;
-	int i = 1;
-	Node*p = head;
-	while (p != NULL)
+	if(head == NULL)
 	{
-		f = new char[50];
-		sprintf(f, file, i);
-		CreateXmlFile(p, f);
-		i++;
-		p = p->next;
+	cout<<"Ttable is null!"<<endl;	
+	}
+	else
+	{
+		char *file = "C:/Users/Chris/Desktop/111/wrong%d.XML";
+		char * f = NULL;
+		int i = 1;
+		Node*p = head;
+		while (p != NULL)
+		{
+			f = new char[50];
+			sprintf(f, file, i);
+			CreateXmlFile(p, f);
+			i++;
+			p = p->next;
+		}
 	}
 }
 
