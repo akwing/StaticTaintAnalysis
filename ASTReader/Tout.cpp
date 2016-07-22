@@ -70,7 +70,7 @@ bool Ttable::insert(string&  line, string& function, int TYPE)
 	}
 	else
 	{
-		t->next = head->next;
+		t->next = head;
 		head->next = t;
 	}
 	return true;
