@@ -150,6 +150,23 @@ void Tainted_Attr::output()
 			}
 		}
 	}
+	else if (type == TYPE_POINTER)
+	{
+		if (attr == TAINTED)
+			cout << "TAINTED ";
+		else if (attr == UNTAINTED)
+			cout << "UN ";
+		else
+		{
+			cout << "RE Related to: ";
+			while (it != it_end)
+			{
+				vd = *it;
+				cout << vd->getNameAsString() << " ";
+				it++;
+			}
+		}
+	}
 	//here to add output
 	else
 	{
@@ -292,7 +309,7 @@ void Tainted_Attr::setPointer(Tainted_Attr *pt)
 	}
 	while (1)
 	{
-		if (pt->type == TYPE_VARIABLE|| pt->type == TYPE_CLASS)
+		if (pt->type == TYPE_VARIABLE || pt->type == TYPE_CLASS)
 		{
 			copy(pt);
 			ptrAttr = pt;
@@ -312,7 +329,7 @@ void Tainted_Attr::setType(VarDeclType tp)
 	}
 	else if (tp == TYPE_POINTER)
 	{
-		attr = TAINTED;
+		attr = UNTAINTED;
 		ptrAttr = NULL;
 		is_temp = false;
 	}
@@ -618,7 +635,7 @@ void CTmap::var_attr_set(const VarDecl *p, e_tattr e, const VarDecl *vd)
 	else
 	{
 		tp = tmap[p];
-		if (tp->getType() != TYPE_VARIABLE)
+		if (tp->getType() != TYPE_VARIABLE && tp->getType() != TYPE_POINTER)
 		{
 			cout << "Warning: type != TYPE_VARIABLE" << endl;
 			return;
@@ -761,7 +778,7 @@ bool Tainted_Attr::compareAttr(Tainted_Attr &ta)
 {
 	if (type != ta.type)
 		return false;
-	if (type == TYPE_VARIABLE)
+	if (type == TYPE_VARIABLE || type == TYPE_POINTER)
 	{
 		if (attr != ta.attr)
 			return false;
@@ -813,18 +830,14 @@ bool CTmap::compareMap(CTmap &tm)
 {
 Tainted_Attr *ptr_p, *ptr_a;//分别存了p和a的污染状况
 //p = &a;(p为指针，a为一般变量)
-
 ptr_p->~Tainted_Attr();
 ptr_p->setType(TYPE_POINTER);
 ptr_p->setPointer(ptr_a);	//会自动将p的污染属性设置为与a相同，且指针会指向a的条目
-
-
 //p = p + 1;(指针指向了下一个位置)
 if (ptr_p->getistemp() == false)//不是动态创建的变量
 ptr_p->setPointer(NULL);//将指针从本来指向的内存移开
 else
 ptr_p->settemp(false);
-
 //a = (*p) + b;(a，b为变量，p为指针)
 ptr_p->getPointerAttr(); //取得指向的变量的污染条目，之后用这个条目与b的取并
 //*p = a + b;
@@ -834,7 +847,6 @@ Tainted_Attr *temp = new Tainted_Attr();
 ptr_p->~Tainted_Attr();
 ptr_p->setType(TYPE_POINTER);
 ptr_p->settemp(true);
-
 }*/
 
 
