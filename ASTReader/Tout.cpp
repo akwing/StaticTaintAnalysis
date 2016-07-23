@@ -2,6 +2,7 @@
 Ttable::Ttable()
 {
 	head = NULL;
+
 }
 Ttable::~Ttable()
 {
@@ -20,6 +21,10 @@ Ttable::~Ttable()
 
 bool Ttable::CreateXmlFile(Node*p, char*file)
 {
+
+	
+		
+	
 	//创建一个XML的文档对象。
 	TiXmlDocument *myDocument = new TiXmlDocument();
 	//创建一个根元素并连接。
@@ -60,31 +65,36 @@ void Ttable::outTtable()
 
 }
 /*插入节点，对外函数*/
-bool Ttable::insert(string&  line, string& function, int TYPE)
+void Ttable::insert(string  line, string function, int TYPE)
 {
+	
+	
 	Node *t = makeTnode(line, function, TYPE);
 	if (head == NULL)
 	{
+		
 		head = t;
 		head->next = NULL;
 	}
 	else
 	{
+		
 		t->next = head;
-		head->next = t;
+		head = t;
 	}
-	return true;
+	return ;
 }
 Ttable::Node* Ttable::makeTnode(string&  line, string& function, int TYPE)
 {
+	
 	/*--------------------------------*/
 	int num = line.find(':', 2);
 	string test_line;
 	test_line.insert(0, line, num + 1, 1);
-	cout << test_line << endl;
+//	cout << test_line << endl;
 	string test_file;
 	test_file.insert(0, line, 0, num);
-	cout << test_file << endl;
+//	cout << test_file << endl;
 	/*以上部分就是将参数line进行解析，得到了代表行号的参数，和文件路径*/
 	/*-------------------------------*/
 
@@ -92,7 +102,7 @@ Ttable::Node* Ttable::makeTnode(string&  line, string& function, int TYPE)
 	//	Node * t = NULL;
 	//	t = exchange(p, line, function);
 	//将行号转换为char类型
-	
+
 	Node * t = new Node;
 	/*--------------------------------*/
 	t->line = new char[50];
@@ -100,7 +110,7 @@ Ttable::Node* Ttable::makeTnode(string&  line, string& function, int TYPE)
 	string str_line = test_line;
 	str_line.copy(t->line, str_line.length(), 0);
 	*(t->line + str_line.length()) = '\0';
-	cout << t->line << "t->line" << endl;
+//	cout << t->line << "t->line" << endl;
 	/*将第一部分解释的行号进行转换，存入节点数据域中*/
 	/*-----------------------------------*/
 
@@ -129,20 +139,20 @@ Ttable::Node* Ttable::makeTnode(string&  line, string& function, int TYPE)
 	string funtion_name = function;
 	funtion_name.copy(t->Tfunction, funtion_name.length(), 0);
 	*(t->Tfunction + funtion_name.length()) = '\0';
-	cout << t->Tfunction << " Tfunction" << endl;
+//	cout << t->Tfunction << " Tfunction" << endl;
 	/*将输入的字符串参数存入节点*/
 	/*------------------------------------*/
 
 
 	//通过clang得到了该变量所在的文件名。
 	//	t->Tfile = (char*)p->getASTContext().getSourceManager().getFilename(p->getSourceRange().getBegin()).data();
-	
+
 	/*----------------------------------------*/
 	t->Tfile = new char[500];
 	string Tfile_name = test_file;
 	Tfile_name.copy(t->Tfile, Tfile_name.length(), 0);
 	*(t->Tfile + Tfile_name.length()) = '\0';
-	cout << t->Tfile << " Tfile" << endl;
+//	cout << t->Tfile << " Tfile" << endl;
 	/*将文件名存入节点*/
 	/*-------------------------------------*/
 
@@ -205,10 +215,12 @@ Ttable::Node* Ttable::exchange(string&  line, string& function, int TYPE)
 }
 void Ttable::listout()
 {
+	
 	Node * t = NULL;
 	t = head;
 	while (t != NULL)
 	{
+		
 		//cout << t->Tname << endl;
 		cout << t->line << endl;
 		cout << t->Tfunction << endl;
@@ -217,26 +229,31 @@ void Ttable::listout()
 		t = t->next;
 	}
 }
-void Ttable::XMLout()
+bool Ttable::XMLout()
 {
-	if(head == NULL)
+
+	if (head == NULL)
 	{
-	cout<<"Ttable is null!"<<endl;	
+		cout << "Ttable is null!" << endl;
+		
+		return 0;
 	}
 	else
 	{
-		char *file = "C:/Users/Chris/Desktop/111/wrong%d.XML";
+		char *file = "C:/Users/dell/Desktop/111/Warning%d.XML";
 		char * f = NULL;
 		int i = 1;
 		Node*p = head;
 		while (p != NULL)
 		{
+			//cout << i << endl;	
 			f = new char[50];
 			sprintf(f, file, i);
 			CreateXmlFile(p, f);
 			i++;
 			p = p->next;
 		}
+		return 1;
 	}
-}
 
+}
