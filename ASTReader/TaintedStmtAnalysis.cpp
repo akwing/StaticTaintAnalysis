@@ -18,7 +18,6 @@ bool checkblock(CFGBlock* cfgb, CTmap &out, callgraph* cg)
 	for (; v != cfgb->end(); v++)
 	{
 		i++;
-
 		//scan each statement
 		if (v->getKind() == CFGElement::Kind::Statement)
 		{
@@ -26,10 +25,8 @@ bool checkblock(CFGBlock* cfgb, CTmap &out, callgraph* cg)
 			Stmt_analysis(s.getStmt(), out, cg);
 			//out.output();
 		}
-
 		cout << "Stmt " << i << " has been analysised" << endl;
 	}
-
 	return false;
 }
 
@@ -42,8 +39,6 @@ bool checkCond(const Stmt* stmt, CTmap &out, callgraph* cg)
 		const BinaryOperator* bo = dyn_cast<BinaryOperator>(stmt);
 		lta = Expr_analysis(bo->getLHS(), out, cg);
 		rta = Expr_analysis(bo->getRHS(), out, cg);
-
-		//判断循环边界
 		if (lta->getVariableAttr() == RELATED || rta->getVariableAttr() == RELATED)
 		{
 			//Error kind = 3
@@ -78,23 +73,15 @@ int Stmt_analysis(const Stmt* stmt, CTmap &out, callgraph* cg)
 	*/
 	switch (stmt->getStmtClass()) {
 	case Stmt::CompoundStmtClass:break;
-
-	//while语句
 	case Stmt::WhileStmtClass:
 		cout << "Get While Stmt Here" << endl;
 		break;
-
-	//二元操作表达式
 	case Stmt::BinaryOperatorClass:
 		expr = dyn_cast<Expr>(stmt);
 		Expr_analysis(expr, out, cg);
 		break;
-
-	//声明语句
 	case Stmt::DeclStmtClass:
 		ds = dyn_cast<DeclStmt>(stmt);
-
-		//判断是否为单个声明
 		if (ds->isSingleDecl())
 		{
 			decl = ds->getSingleDecl();
@@ -103,8 +90,6 @@ int Stmt_analysis(const Stmt* stmt, CTmap &out, callgraph* cg)
 			if (expr != NULL)
 				out.var_attr_set(vd, Expr_analysis(expr, out, cg));
 		}
-
-		//多个声明逐个抽取
 		else
 		{
 			di = ds->getDeclGroup().begin();
@@ -117,18 +102,15 @@ int Stmt_analysis(const Stmt* stmt, CTmap &out, callgraph* cg)
 			}
 		}
 		break;
-
-	//返回语句分析返回值污染状况并进行填写
 	case Stmt::ReturnStmtClass:
 		expr = dyn_cast<ReturnStmt>(stmt)->getRetValue();
 		//get tainted_attr of the return expr
 		if (expr != NULL)
 		{
 			cg->get_return()->unionAttr(*Expr_analysis(expr, out, cg));
+			//cout << "::::::::::::::::::::::::::::::::::::::::::::::::::::::" << endl;
 		}
 		break;
-
-	//函数调用表达式
 	case Stmt::CallExprClass:
 		expr = dyn_cast <Expr>(stmt);
 		Expr_analysis(expr, out, cg);
@@ -146,47 +128,30 @@ Tainted_Attr* Expr_analysis(const Expr* expr, CTmap &out, callgraph* cg)
 	const UnaryOperator* uo;
 	Tainted_Attr* res = new Tainted_Attr();
 	res->setType(TYPE_VARIABLE);
-
 	if (expr == NULL)
 	{
 		return res;
 	}
-
 	switch (expr->getStmtClass()) {
-
-	//二元操作表达式
 	case Stmt::BinaryOperatorClass:
 		return BinaryOperator_Expr_analysis(expr, out, cg);
-
-	//语句块表达式
 	case Stmt::BlockExprClass:break;
-
-	//函数调用语句
 	case Stmt::CallExprClass:
 		//cout << "CallExpr:::::::::::::::::::::::::::::::" << endl;
 		return CallExpr_analysis(expr, out, cg);
-
-	//隐式类型转化
 	case Stmt::ImplicitCastExprClass:
 		icexpr = dyn_cast<ImplicitCastExpr>(expr);
 		return Expr_analysis(icexpr->getSubExpr(), out, cg);
-
-	//变量使用语句
 	case Stmt::DeclRefExprClass:
 		drexpr = dyn_cast<DeclRefExpr>(expr);
 		vd = dyn_cast<VarDecl>(drexpr->getDecl());
 		res->copy(out.getAttr(vd));
 		return res;
-
 	case Stmt::IntegerLiteralClass:
 		return res;
-	
-	//单目操作符语句
 	case Stmt::UnaryOperatorClass:
 		uo = dyn_cast<UnaryOperator>(expr);
 		return Expr_analysis(uo->getSubExpr(), out, cg);
-
-	//数组语句
 	case Stmt::ArraySubscriptExprClass:
 		return ArrayExpr_analysis(expr, out, cg);
 	default:break;
@@ -209,11 +174,7 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 	const Expr* arrayIdx;
 	Tainted_Attr* lta, *rta;
 	const ArraySubscriptExpr *asexpr;
-
-
 	switch (bo->getOpcode()) {
-
-	//无赋值行为的双目操作符
 	case BinaryOperatorKind::BO_LAnd:                  //if && is in a Expr other than IfExpr ,there is still some problens
 	case BinaryOperatorKind::BO_Add:
 	case BinaryOperatorKind::BO_And:
@@ -252,8 +213,6 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 		}
 		res->unionAttr(*lta, *rta);
 		return res;
-	
-	//有复制行为的二元操作符
 	case BinaryOperatorKind::BO_AndAssign:
 	case BinaryOperatorKind::BO_AddAssign:
 	case BinaryOperatorKind::BO_DivAssign:
@@ -326,8 +285,6 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 		res->unionAttr(*rta);
 		out.var_attr_set(vd, res);
 		return res;
-
-	//赋值语句
 	case BinaryOperatorKind::BO_Assign:
 		if (lexpr->getStmtClass() == Stmt::ArraySubscriptExprClass)
 		{
@@ -343,6 +300,7 @@ Tainted_Attr* BinaryOperator_Expr_analysis(const Expr* expr, CTmap &out, callgra
 					asexpr = dyn_cast<ArraySubscriptExpr>(arrayBase);
 					arrayBase = asexpr->getBase();
 					arrayIdx = asexpr->getIdx();
+					ata->unionAttr(*Expr_analysis(arrayIdx, out, cg));
 				}
 				else
 				{
@@ -423,11 +381,11 @@ Tainted_Attr* CallExpr_analysis(const Expr* expr, CTmap &out, callgraph* cg)
 				checkCFG(*(calleeCg->get_cfg()), calleeCg->getCTmap(), calleeCg);
 				calleeCg->set_if_check_cfg();
 			}
-			int n = cg->getParamNum();
+			int n = calleeCg->getParamNum();
 			Tainted_Attr *tp = new Tainted_Attr[n];
 
 			set<const VarDecl*>::iterator it = calleeCg->get_return()->getVariableRelation()->begin(), it_end = calleeCg->get_return()->getVariableRelation()->end();
-			int argNo = calleeCg->get_param_no(*it);
+			int argNo;
 			int i = 0;
 			while (it != it_end)
 			{
@@ -439,9 +397,8 @@ Tainted_Attr* CallExpr_analysis(const Expr* expr, CTmap &out, callgraph* cg)
 				else
 				{
 					tp[i].copy(Expr_analysis(cexpr->getArg(argNo), out, cg));
-					tp[i].output();
-					cout << endl;
-					//cout << "argNo :::::::::::::::::::::::::::::::::::::::"<<argNo << endl;
+					//tp[i].output();
+					//cout << endl;
 					res->unionAttr(tp[i]);     //将形参序号转化为实参的具体Expr
 					//res->output();
 					//cout << endl;
@@ -454,7 +411,6 @@ Tainted_Attr* CallExpr_analysis(const Expr* expr, CTmap &out, callgraph* cg)
 		}
 		else
 		{
-			cout << "Callee can't be found" << endl;
 			return res;
 		}
 	}
