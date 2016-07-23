@@ -1,3 +1,6 @@
+#ifndef TOUT_H
+#define TOUT_H
+
 #include<stdio.h>
 #include<iostream>
 #include<string>
@@ -43,18 +46,20 @@ public:
 	void make_node(const VarDecl *p);
 	//	bool insert(const VarDecl *p,  int line,string function);
 	//	bool insert(const VarDecl *p,string line,string function,int TYPE);
-	bool insert(string& line, string& function, int TYPE);
+	void insert(string line, string function, int TYPE);
 	void outTtable();
 	bool CreateXmlFile(Node*p, char*file);
 	VarDecl * serach(const VarDecl * p);
 	void listout();
-	void XMLout();
-
+	bool XMLout();
+	Node * head = NULL;
 private:
 
-	Node * head;
+
 
 	Node* makeTnode(string& line, string& function, int TYPE);
 
 	Node* exchange(string& line, string& function, int TYPE);
 };
+
+#endif
