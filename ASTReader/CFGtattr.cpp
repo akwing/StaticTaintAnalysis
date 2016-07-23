@@ -55,6 +55,11 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 			checkblock(r_iter->first, *outm,cg);
 			checkTerminator(*r_iter->first, *outm, cg);
 
+			//if ((*r_iter).first->getTerminatorCondition() == NULL)
+			//{
+			//	cout << "B" << (*r_iter).first->getBlockID() << " is NULL" << endl;
+			//}
+
 			if (outm->compareMap(preout) == false)
 			{
 				changed = true;
@@ -79,7 +84,7 @@ void checkCFG(clang::CFG &cfg, CTmap &tm, callgraph *cg)
 	cg->getCTmap().CopyMap(*cg->block_io_map[&cfg.getExit()].GetOUT());
 	
 	outm = cg->block_io_map[&cfg.getExit()].GetOUT();
-	
+	cout << "check " << cg->getCur()->getQualifiedNameAsString() << " end" << endl<<endl;
 	//output2xml(cg,*outm);
 	
 }
@@ -103,6 +108,24 @@ void checkTerminator(CFGBlock &cfgb, CTmap &out, callgraph *cg)
 
 }
 
+Stmt *checkBeforeCond(CFGBlock &cfgb)
+{
+	clang::CFGBlock::pred_iterator pred_it, pred_end;
+	pred_it = cfgb.pred_begin();
+	pred_end = cfgb.pred_end();
+	
+	Stmt *stmt;
+
+	while (pred_it != pred_end)
+	{
+		stmt = (*pred_it).getReachableBlock()->getTerminatorCondition();
+		if (stmt != NULL)
+			return stmt;
+		pred_it++;
+	}
+	return NULL;
+}
+
 //ta为参数的污染情况，n为ta数组中元素的个数，该函数用于修改第二个TCI表
 void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], const int n)
 {
@@ -118,9 +141,10 @@ void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], co
 	//g自身的TCI表添加到f中
 	it = callee->TCI_list.begin();
 	it_end = callee->TCI_list.end();
-	
+	//cout << 4444 << endl;
 	while (it != it_end)
 	{
+		//cout << 33333 << endl;
 		temp = new TCI;
 		temp->astcontext = (*it)->astcontext;
 		temp->type = (*it)->type;
@@ -129,6 +153,10 @@ void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], co
 		temp->re = new Tainted_Attr;
 		temp->re->copy((*it)->re);
 		temp->fd = (*it)->fd;
+
+	//	temp->re->output();
+		//int b;
+		//cin >> b;
 
 		caller->TCI_list_call.insert(caller->TCI_list_call.end(),temp);
 
@@ -156,8 +184,8 @@ void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], co
 	}
 
 	//修改f的TCI_list_call中的内容
-	it = caller->TCI_list.begin();
-	it_end = caller->TCI_list.end();
+	it = caller->TCI_list_call.begin();
+	it_end = caller->TCI_list_call.end();
 
 	while (it != it_end)
 	{
@@ -170,6 +198,7 @@ void BuildSecondList(callgraph *caller, callgraph *callee, Tainted_Attr ta[], co
 			while (var_it != var_end)
 			{
 				k = callee->get_param_no((*var_it));
+				//cout<<"testing: " << (*var_it)->getQualifiedNameAsString() << endl;
 				if (k >= 0 && k < n)
 				{
 					q = &ta[k];
@@ -219,8 +248,9 @@ void MsgOutput2Xml(callgraph *cg, Ttable &tt)
 			if (cg->get_param_no(*var_it) >= 0)
 			{
 				sm = &(*it)->astcontext->getSourceManager();
-				cout << (*it)->expr->getLocStart().printToString(*sm) << endl;
-				//tt.insert((*it)->vd, (*it)->expr->getLocStart().printToString(*sm), (*it)->fd->getQualifiedNameAsString(), (*it)->type);
+				//cout << (*it)->expr->getLocStart().printToString(*sm) << endl;
+				cout << 1 << endl;
+				tt.insert((*it)->expr->getLocStart().printToString(*sm), (*it)->fd->getQualifiedNameAsString(), (*it)->type);
 				break;
 			}
 			var_it++;
@@ -242,7 +272,9 @@ void MsgOutput2Xml(callgraph *cg, Ttable &tt)
 			if (cg->get_param_no(*var_it) >= 0)
 			{
 				sm = &(*it)->astcontext->getSourceManager();
-				//tt.insert((*it)->vd, (*it)->expr->getLocStart().printToString(*sm), (*it)->fd->getQualifiedNameAsString(), (*it)->type);
+				//cout << (*it)->expr->getLocStart().printToString(*sm) << endl;
+				cout << 1 << endl;
+				tt.insert((*it)->expr->getLocStart().printToString(*sm), (*it)->fd->getQualifiedNameAsString(), (*it)->type);
 				break;
 			}
 			var_it++;
